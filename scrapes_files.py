@@ -74,10 +74,3 @@ def race_gen(html):
     race = listmaker(race)
 
     return race
-
-#have no table
-#print(race_gen('race_folder/1997 R15.html'))
-#print(race_gen('race_folder/1997 R20.html'))
-
-#print(race_gen('race_folder/1997 R22.html'))
-#print(race_gen('race_folder/1997 R2.html'))
