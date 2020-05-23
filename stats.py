@@ -87,6 +87,6 @@ def gen_stats(race_list):
         i += 1
     return total_stats
 
-total_stats = gen_stats(all_races)
-total_stats = total_stats.sort_values(['Wins'],ascending=False)
-print(total_stats)
+#total_stats = gen_stats(all_races)
+#total_stats = total_stats.sort_values(['Wins'],ascending=False)
+#print(total_stats)
