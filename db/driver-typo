@@ -1,0 +1,11 @@
+UPDATE race_records
+SET driver = 'B Hillin Jr.' WHERE driver = 'B Hillin Jr';
+
+UPDATE race_records
+SET driver = 'G Allen Jr.' WHERE driver = 'G Allen, Jr.';
+
+UPDATE race_records
+SET driver = 'K Irwin Jr.' WHERE driver = 'K Irwin, Jr.';
+
+UPDATE race_records
+SET driver = 'M Laughlin Jr.' WHERE driver = 'M Laughlin, Jr.'

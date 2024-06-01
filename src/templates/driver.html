@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <h1>
+        Statistics for {{driver}}
+    </h1>
+
+    <!-- Table of stats for each series driver has participated in -->
+    {% for series in series_records.keys() %}
+        <h2>
+            Statistics in {{ series }}
+        </h2>
+        <table>
+            <tr>
+                {% for header in header %}
+                    <td><b>
+                        {{ header }}
+                    </b></td>
+                {% endfor %}
+            </tr>
+            {% for row in series_records[series] %}
+                {% if loop.last %}
+                    <tr>
+                        {% for value in row %}
+                            <td>
+                                <b>{{ value }}</b>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% else %}
+                   
+                    <tr>
+                        {% for value in row %}
+                            <td>
+                                {% if loop.first %}
+                                    <a href="/points/{{series}}/{{value}}">{{value}}</a>
+                                {% else %}
+                                    {{ value }}
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                    
+                {% endif %}
+            {% endfor %}
+        </table>
+        <br>
+        <br>
+    {% endfor %}
+</body>

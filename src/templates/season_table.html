@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<head>
+    <title>Season Standings</title>
+</head>
+<body>
+    <table>
+        <tr>
+            {% for header in header %}
+                <td>
+                    <b>{{ header }}</b>
+                </td>
+            {% endfor %}
+        </tr>
+        {% for row in records %}
+        <tr>
+            <td>
+                {{loop.index}}
+            </td>
+            {% for value in row %}
+                <td>
+                    {% if loop.first %}
+                        <a href="/driver/{{value | replace(' ', '_')}}">{{ value }}</a>
+                    {% else %}
+                        {{ value }}
+                    {% endif %}
+                </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+</body>

@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS series (
+    id    INTEGER PRIMARY KEY,
+    name  VARCHAR NOT NULL     
+);
+
+CREATE TABLE IF NOT EXISTS drivers (
+    id        INT PRIMARY KEY,
+    game_id   VARCHAR UNIQUE NOT NULL,
+    full_name VARCHAR NOT NULL
+)
