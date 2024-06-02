@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <title>Add Race</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <h1>Add Race</h1>
+
+        <form action="/add-race" method="post" enctype="multipart/form-data">
+
+            <label for="series">Choose a series:</label>
+            <select id="series" name="series" required>
+                {% for s in series %}
+                    <option value="{{s[0]}}">{{s[1]}}</option>
+                {% endfor %}
+            </select>
+            <br>
+
+            <label for="tracks">Choose a track:</label>
+            <select id="tracks" name="tracks" required>
+                {% for t in tracks %}
+                    <option value="{{t[0]}}">{{t[1]}}</option>
+                {% endfor %}
+            </select>
+            <br>
+
+            <label for="year">Select a Year:</label>
+            <input type="number" id="year" name="year" required>
+
+            <label for="file">File:</label>
+            <input type="file" id="file" name="file" required >
+
+            <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>
