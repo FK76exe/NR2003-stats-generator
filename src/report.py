@@ -12,7 +12,7 @@ def hello_world():
     season_year_dict = {}
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
-        cursor.execute("SELECT DISTINCT series.name, races.year FROM races LEFT JOIN series ON series.id = races.series ORDER BY series.name ASC, races.year DESC")
+        cursor.execute("SELECT DISTINCT series.name, season_num as year FROM races, series JOIN seasons ON races.season_id = seasons.id AND seasons.series_id = series.id ORDER BY series.name ASC, year DESC")
         data = cursor.fetchall()
         for row in data:
             s,y = row
