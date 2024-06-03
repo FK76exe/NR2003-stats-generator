@@ -9,7 +9,19 @@ DATABASE_NAME = "../db/nr-stats-gen.db"
 
 @app.route("/")
 def hello_world():
-    return "<p>Hello, World!</p>"
+    season_year_dict = {}
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        cursor.execute("SELECT DISTINCT series.name, races.year FROM races LEFT JOIN series ON series.id = races.series ORDER BY series.name ASC, races.year DESC")
+        data = cursor.fetchall()
+        for row in data:
+            s,y = row
+            if s not in season_year_dict.keys():
+                season_year_dict[s] = [y]
+            else:
+                season_year_dict[s].append(y)
+
+    return render_template('home.html', season_year_dict=season_year_dict)
 
 @app.route("/add-race", methods=['GET', 'POST'])
 def add_race():
@@ -35,13 +47,13 @@ def add_race():
 
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
-        cursor.execute(f"INSERT INTO races (series, year, race_file, track_id) VALUES ({int(race_series)}, {int(race_year)}, '{race_file.name}', {int(race_track)})")
+        cursor.execute(f"INSERT INTO races (series, year, race_file, track_id) VALUES ({int(race_series)}, {int(race_year)}, '{race_file.filename}', {int(race_track)})")
         
         # create drivers if they don't exist
         cursor.executemany(f"INSERT OR IGNORE INTO drivers (game_id) VALUES (?)", drivers)
 
         # get id of race
-        cursor.execute(f"SELECT id FROM races WHERE race_file='{race_file.name}'")
+        cursor.execute(f"SELECT id FROM races WHERE race_file='{race_file.filename}'")
         race_id = cursor.fetchone()
 
         # get id of drivers
@@ -54,7 +66,6 @@ def add_race():
 
         # add driver data
         for row in processed[1:]:
-            print(f"INSERT INTO race_records ({race_id[0]}, {row[0]}, {row[1]}, {row[2]}, {int(driver_id_dict[row[3]])}, {row[4]}, {row[5]}, {row[6]}, {row[7]}, '{row[8]}')")
             cursor.execute(f"INSERT INTO race_records VALUES ({race_id[0]}, {row[0]}, {row[1]}, {row[2]}, {int(driver_id_dict[row[3]])}, '{row[4]}', {row[5]}, {row[6]}, {row[7]}, '{row[8]}')")
 
         con.commit()

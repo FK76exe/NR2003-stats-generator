@@ -1,0 +1,21 @@
+<html>
+    <head>
+        Home
+    </head>
+    <body>
+        <H1>NR2003 Stats Generator</H1>
+        
+        <ul>
+            {% for season in season_year_dict.keys() %}
+            <li>
+                {{season}}
+                {% for year in season_year_dict[season] %}
+                <ul>
+                    <a href="/points/{{season}}/{{year}}">{{year}}</a>
+                </ul>
+                {% endfor %}
+            </li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

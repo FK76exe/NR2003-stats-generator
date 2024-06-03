@@ -15,3 +15,9 @@ this is bare minimum. We can work on rest later.
 
 ## Progress Made
 - Got scraper working
+
+# TODO
+- add series from website
+- show race results
+- edit driver in race results
+- entries and teams
