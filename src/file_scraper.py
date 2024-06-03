@@ -45,32 +45,18 @@ def text_purifier(text):
     text = text.replace('\r','')
     text = text.replace('\n','')
     text = text.replace('\t','')
+    text = text.replace('*','')
     return text
     
-def race_gen(html):
-    #print("new")
-    f = open(html,"rb")
-    contents = f.read()
-    html_soup = soup(contents,features="html.parser")
+def scrape_race_results(html):
+    html_soup = soup(html,features="html.parser")
     total_session = html_soup.findAll("table")
-    
-    #sort into tables
-    #print(listmaker(total_session[-2]))
-    #print(len(listmaker(total_session[-2])))
-##    if listmaker(total_session[-2])[0] == "F":
-##        race = total_session[-2]  #if penalty table exists
-##    else:
-##        race = total_session[-1]  #if penalty table does not exist
+
     race = total_session[-2]
-##    for x in total_session:
-##        print(html)
-##        if len(listmaker(x)) > 10:
-##            print(listmaker(x)[:10])
-##            print('next')
-##        else:
-##            print(listmaker(x))
 
     #purify them (make them a list)
     race = listmaker(race)
 
     return race
+
+# print(scrape_race_results("C:\\Papyrus\\NASCAR Racing 2003 Season\\exports_imports\\MM01_T_Daytona.html"))# 
