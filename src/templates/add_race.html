@@ -1,7 +1,7 @@
 <html>
     <head>
         <title>Add Race</title>
-        <link rel="stylesheet" href="styles.css">
+        <!-- <link rel="stylesheet" href="styles.css"> -->
     </head>
     <body>
         <h1>Add Race</h1>
@@ -9,7 +9,7 @@
         <form action="/add-race" method="post" enctype="multipart/form-data">
 
             <label for="series">Choose a series:</label>
-            <select id="series" name="series" required>
+            <select id="series" name="series" required onchange="UpdateSeasonOptions(this.value)">
                 {% for s in series %}
                     <option value="{{s[0]}}">{{s[1]}}</option>
                 {% endfor %}
@@ -24,8 +24,12 @@
             </select>
             <br>
 
-            <label for="year">Select a Year:</label>
-            <input type="number" id="year" name="year" required>
+            <label for="seasons">Select a Season:</label>
+            <select id="seasons" name="seasons" required>
+                {% for season in seasons %}
+                    <option value="{{season[0]}}">{{season[1]}}</option>
+                {% endfor %}
+            </select>
 
             <label for="file">File:</label>
             <input type="file" id="file" name="file" required >
@@ -34,3 +38,30 @@
         </form>
     </body>
 </html>
+
+<script>
+    function UpdateSeasonOptions(series) {
+        season_options = []
+        fetch("/seasons/"+series).then(
+            function(data) { 
+                return data.json()
+            }
+        ).then(
+            function(season_list) {
+                // create new option elements
+                for (i = 0; i < season_list.length; i++) {
+                    option = document.createElement('option')
+                    option.value = season_list[i][0]
+                    option.text = season_list[i][1]
+                    season_options.push(option)
+                }
+
+                // replace current options with updated options
+                document.getElementById('seasons').replaceChildren(...season_options)    
+                // huh? read https://www.freecodecamp.org/news/three-dots-operator-in-javascript/
+            }
+        )
+        
+
+    } 
+</script>

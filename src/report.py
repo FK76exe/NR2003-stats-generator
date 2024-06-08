@@ -1,3 +1,5 @@
+# TODO look into macros(https://jinja.palletsprojects.com/en/3.0.x/templates/#macros) and splitting up code
+
 from flask import Flask, render_template, request
 from markupsafe import escape
 import file_scraper
@@ -23,11 +25,22 @@ def hello_world():
 
     return render_template('home.html', season_year_dict=season_year_dict)
 
-@app.route("/add-race", methods=['GET', 'POST'])
+@app.route("/seasons/<series_id>")
+def get_seasons_by_series(series_id):
+    """Get all seasons linked to `series_id`"""
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        query = f"SELECT id, season_num FROM seasons WHERE series_id = {series_id}"
+        cursor.execute(query)
+        data = cursor.fetchall()
+        return data
+
+@app.route("/add-race/", methods=['GET', 'POST'])
 def add_race():
     # get all series and tracks
     series = []
     tracks = []
+    seasons = [2]
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
         cursor.execute(f"SELECT * FROM series ORDER BY name")
@@ -35,11 +48,16 @@ def add_race():
         cursor.execute(f"SELECT * FROM tracks ORDER BY track_name")
         tracks = cursor.fetchall()
 
+        if len(series) > 0:
+            cursor.execute(f"SELECT id, season_num FROM seasons WHERE series_id = {series[0][0]}")
+            seasons = cursor.fetchall()
+
     # if GET -> present form
     if request.method == 'GET':
-        return render_template('add_race.html', tracks=tracks, series=series)
+        return render_template('add_race.html', tracks=tracks, series=series, seasons=seasons)
+    
     # if POST -> add race data
-    race_series, race_year, race_track = request.form['series'], request.form['year'], request.form['tracks']
+    race_track, race_season = request.form['tracks'], request.form['seasons']
     race_file = request.files['file']
     processed = file_scraper.scrape_race_results(race_file.read().decode("windows-1252"))
 
@@ -47,7 +65,7 @@ def add_race():
 
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
-        cursor.execute(f"INSERT INTO races (series, year, race_file, track_id) VALUES ({int(race_series)}, {int(race_year)}, '{race_file.filename}', {int(race_track)})")
+        cursor.execute(f"INSERT INTO races (season_id, race_file, track_id) VALUES ({int(race_season)}, '{race_file.filename}', {int(race_track)})")
         
         # create drivers if they don't exist
         cursor.executemany(f"INSERT OR IGNORE INTO drivers (game_id) VALUES (?)", drivers)
