@@ -12,9 +12,3 @@ This will be done in... *sigh* Python.
     - generate track stats for a specific track by id
 
 this is bare minimum. We can work on rest later.
-
-## Progress Made
-- Got scraper working
-
-# Add-Season-Stuff
-- make seasons its own thing: link to a series, and link races to a season

@@ -1,0 +1,53 @@
+<html>
+    <head>
+        <title>
+            {{ series }}
+        </title>
+    </head>
+    <body>
+        <h1>{{ series }}</h1>
+
+        <!-- Season List -->
+        <table>
+            <tr>
+                {% for header in season_headers %}
+                <td>
+                    <b>{{header}}</b>
+                </td>
+                {% endfor %}
+            </tr>
+            {% for season in season_stats %}
+            <tr>
+                {% for stat in season %}
+                <td>
+                    {{stat}}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <br>
+        <!-- driver data -->
+         Driver Data
+        <table>
+            <tr>
+                {% for header in driver_headers %}
+                <td>
+                    <b>{{header[0]}}</b>
+                </td>
+                {% endfor %}
+            </tr>
+            {% for season in driver_stats %}
+            <tr>
+                {% for stat in season %}
+                <td>
+                    {{stat}}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+
+    </body>
+</html>

@@ -1,5 +1,3 @@
-# TODO look into macros(https://jinja.palletsprojects.com/en/3.0.x/templates/#macros) and splitting up code
-
 from flask import Flask, render_template, request
 from markupsafe import escape
 import file_scraper
@@ -10,7 +8,7 @@ app = Flask(__name__)
 DATABASE_NAME = "../db/nr-stats-gen.db"
 
 @app.route("/")
-def hello_world():
+def home():
     season_year_dict = {}
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
@@ -24,6 +22,46 @@ def hello_world():
                 season_year_dict[s].append(y)
 
     return render_template('home.html', season_year_dict=season_year_dict)
+
+@app.route("/series/<series_id>")
+def get_series_info(series_id):
+    """Get information about a series by `series_id`"""
+    driver_desc = []
+    driver_stats = ()
+    season_desc = ['Year', 'Races', 'Points Leader']
+    season_stats = ()
+    series_name = None
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        cursor.execute(f"SELECT COUNT(*) as Seasons, game_id as Driver, sum(RACES) as Races, sum(WIN) as Wins, sum([TOP 5]) as [Top 5s], sum([TOP 10]) as [Top 10s], \
+sum(POLE) as Poles, sum(LAPS) as Laps, sum(LED) as Led, sum(DNF) as DNFs, sum(LLF) as LLFs, sum(POINTS) as Points \
+from points_view \
+LEFT JOIN series on points_view.series = series.name \
+WHERE series.id = {series_id} \
+group by game_id order by points DESC")
+        
+        driver_stats = cursor.fetchall()
+        driver_desc = cursor.description
+        cursor.execute(f"""
+        SELECT season_num, COUNT(races.id), game_id
+FROM seasons
+LEFT JOIN races ON races.season_id = seasons.id
+LEFT JOIN series ON seasons.series_id = series.id
+LEFT JOIN (
+    SELECT year, series, game_id
+    FROM points_view
+    GROUP BY year, series
+) a ON seasons.season_num = a.year AND series.name = a.series
+WHERE series.id = {series_id}
+GROUP BY season_num
+        """)
+        season_stats = cursor.fetchall()
+
+        series_name = cursor.execute(f"SELECT name FROM series WHERE id = {series_id}").fetchall()[0][0]
+    
+    return render_template('series.html', driver_headers = driver_desc, driver_stats = driver_stats,
+                           season_headers = season_desc, season_stats = season_stats, series = series_name)
+        
 
 @app.route("/seasons/<series_id>")
 def get_seasons_by_series(series_id):
