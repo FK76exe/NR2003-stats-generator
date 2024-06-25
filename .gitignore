@@ -1,4 +1,5 @@
 db/*.db
 .vscode 
 env
-src/__pycache__/report.cpython-311.pyc
+*.pyc
+notes.txt
