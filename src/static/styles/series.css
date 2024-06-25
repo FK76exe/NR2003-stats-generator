@@ -1,0 +1,6 @@
+tr#header td {
+    border-style: double;
+    border-right: none;
+    border-left: none;
+    border-top: none;
+}
