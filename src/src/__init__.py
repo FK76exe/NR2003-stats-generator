@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 from markupsafe import escape
-import file_scraper
+import src.file_scraper as file_scraper
 import sqlite3
 
 app = Flask(__name__)
@@ -155,6 +155,7 @@ def driver_data(game_id):
         data = cursor.fetchall()
 
         # get aggregate data as well (use Nones for things that can't be aggregated)
+        # || = concat
         query = f"SELECT COUNT(*) || ' years', series as SERIES, SUM(RACES), SUM(WIN), SUM([TOP 5]), SUM([TOP 10]), SUM(POLE), SUM(LAPS), SUM(LED), '---', '---', SUM(DNF), SUM(LLF), SUM(POINTS) FROM points_view WHERE game_id = '{game_id}' GROUP BY series"
         cursor.execute(query)
         data += cursor.fetchall()
@@ -168,12 +169,3 @@ def driver_data(game_id):
             records_by_series[season_record[1]].append(season_record[:1] + season_record[2:])
 
     return render_template('driver.html', header=header, series_records=records_by_series, driver=game_id)
-
-
-# TODO
-"""
-- driver stats (per-season and result, wiki style)
-- race-by-race (wikipedia style)
-- season/series overview
-- track stats
-"""
