@@ -1,0 +1,34 @@
+<html>
+    <head>
+        <title>
+            {{ season }}
+        </title>
+    </head>
+    <body>
+        <h1>
+            {{ series ~ ", Season " ~ season ~ " Schedule"}}
+        </h1>
+        <table>
+            <!-- header row -->
+             <tr>
+                <td>
+                    #
+                </td>
+                <td>
+                    Track
+                </td>
+                <td>
+                    Winner
+                </td>
+             </tr>
+             <!-- data row -->
+            {% for race in schedule %}
+                <tr>
+                    <td>{{loop.index}}</td>
+                    <td>{{race[0]}}</td>
+                    <td>{{race[1]}}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>

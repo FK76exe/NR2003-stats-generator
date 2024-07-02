@@ -5,7 +5,7 @@ import sqlite3
 
 app = Flask(__name__)
 
-DATABASE_NAME = "../db/nr-stats-gen.db"
+DATABASE_NAME = "../../db/nr-stats-gen.db"
 
 @app.route("/")
 def home():
@@ -128,18 +128,6 @@ def add_race():
 
     return "submitted"
 
-
-@app.route("/points/<series>/<year>")
-def show_series(series, year):
-    data = []
-    query = f"SELECT game_id AS DRIVER, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS FROM points_view WHERE series = '{escape(series)}' AND year = {escape(year)}"
-    with sqlite3.connect(DATABASE_NAME) as con:
-        cursor = con.cursor()
-        cursor.execute(query)
-        header = ["RANK"] + [col[0] for col in cursor.description]
-        data = cursor.fetchall()
-    return render_template('season_table.html',header=header, records=data)
-
 @app.route("/driver/<game_id>")
 def driver_data(game_id):
     data = []
@@ -169,3 +157,34 @@ def driver_data(game_id):
             records_by_series[season_record[1]].append(season_record[:1] + season_record[2:])
 
     return render_template('driver.html', header=header, series_records=records_by_series, driver=game_id)
+
+@app.route("/series/<series>/<season>")
+def get_schedule(series, season):
+    """return list of races, with track and winner for a given season."""
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+
+        season_id_query = f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}"
+        season_id = cursor.execute(season_id_query).fetchall()[0][0]
+
+        query = f"SELECT track_name AS Track, game_id AS Winner FROM races LEFT JOIN tracks ON track_id = tracks.id LEFT JOIN (SELECT race_id, game_id FROM race_records LEFT JOIN drivers ON driver_id = drivers.id WHERE finish_position = 1) ON race_id = races.id WHERE season_id = {season_id}"
+        schedule = cursor.execute(query).fetchall()
+
+        series_query = f"SELECT name FROM seasons LEFT JOIN series ON seasons.series_id = series.id WHERE seasons.id={season_id}"
+        series = cursor.execute(series_query).fetchall()
+
+    return render_template('season.html', schedule=schedule, season=season, series=series[0][0])
+
+@app.route("/series/<series>/<season>/points")
+def show_series(series, season):
+    data = []
+
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        series_name = cursor.execute(f"SELECT name FROM series WHERE id = {series}").fetchall()[0][0]
+
+        query = f"SELECT game_id AS DRIVER, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS FROM points_view WHERE series = '{series_name}' AND year = {escape(season)}"
+        cursor.execute(query)
+        header = ["RANK"] + [col[0] for col in cursor.description]
+        data = cursor.fetchall()
+    return render_template('season_table.html',header=header, records=data)
