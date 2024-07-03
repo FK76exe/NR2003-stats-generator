@@ -23,7 +23,7 @@ def home():
 
     return render_template('home.html', season_year_dict=season_year_dict)
 
-@app.route("/series/<series_id>")
+@app.route("/series/<series_id>/")
 def get_series_info(series_id):
     """Get information about a series by `series_id`"""
     driver_desc = []
@@ -63,7 +63,7 @@ GROUP BY season_num
                            season_headers = season_desc, season_stats = season_stats, series = series_name)
         
 
-@app.route("/seasons/<series_id>")
+@app.route("/seasons/<series_id>/")
 def get_seasons_by_series(series_id):
     """Get all seasons linked to `series_id`"""
     with sqlite3.connect(DATABASE_NAME) as con:
@@ -128,7 +128,7 @@ def add_race():
 
     return "submitted"
 
-@app.route("/driver/<game_id>")
+@app.route("/driver/<game_id>/")
 def driver_data(game_id):
     data = []
     for i, char in enumerate(game_id):
@@ -158,7 +158,7 @@ def driver_data(game_id):
 
     return render_template('driver.html', header=header, series_records=records_by_series, driver=game_id)
 
-@app.route("/series/<series>/<season>")
+@app.route("/series/<series>/<season>/")
 def get_schedule(series, season):
     """return list of races, with track and winner for a given season."""
     with sqlite3.connect(DATABASE_NAME) as con:
@@ -171,11 +171,11 @@ def get_schedule(series, season):
         schedule = cursor.execute(query).fetchall()
 
         series_query = f"SELECT name FROM seasons LEFT JOIN series ON seasons.series_id = series.id WHERE seasons.id={season_id}"
-        series = cursor.execute(series_query).fetchall()
+        series_name = cursor.execute(series_query).fetchall()
 
-    return render_template('season.html', schedule=schedule, season=season, series=series[0][0])
+    return render_template('season.html', schedule=schedule, season=season, series_name=series_name[0][0], series=series)
 
-@app.route("/series/<series>/<season>/points")
+@app.route("/series/<series>/<season>/points/")
 def show_series(series, season):
     data = []
 
@@ -187,4 +187,4 @@ def show_series(series, season):
         cursor.execute(query)
         header = ["RANK"] + [col[0] for col in cursor.description]
         data = cursor.fetchall()
-    return render_template('season_table.html',header=header, records=data)
+    return render_template('season_table.html',header=header, records=data, series=series, season=season)
