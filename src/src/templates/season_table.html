@@ -1,8 +1,15 @@
+{% from "macro.html" import navLink with context %}
 <!DOCTYPE html>
 <head>
     <title>Season Standings</title>
 </head>
 <body>
+    <!-- Navbar -->
+    <ul>
+        {{ navLink('Home', '/') }}
+        {{ navLink('Schedule',"../") }}
+    </ul>
+
     <table>
         <tr>
             {% for header in header %}

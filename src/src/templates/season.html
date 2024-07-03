@@ -1,0 +1,41 @@
+{% from "macro.html" import navLink with context %}
+<html>
+    <head>
+        <title>
+            {{ season }}
+        </title>
+    </head>
+    <body>
+        <!-- Navbar -->
+        <ul>
+            {{ navLink('Home', '/') }}
+            {{ navLink('Points', "./points") }}
+        </ul>
+
+        <h1>
+            {{ series_name ~ ", Season " ~ season ~ " Schedule"}}
+        </h1>
+        <table>
+            <!-- header row -->
+             <tr>
+                <td>
+                    #
+                </td>
+                <td>
+                    Track
+                </td>
+                <td>
+                    Winner
+                </td>
+             </tr>
+             <!-- data row -->
+            {% for race in schedule %}
+                <tr>
+                    <td>{{loop.index}}</td>
+                    <td>{{race[0]}}</td>
+                    <td>{{race[1]}}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
