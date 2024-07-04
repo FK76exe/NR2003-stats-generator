@@ -1,0 +1,31 @@
+<html>
+    <head>
+        <title>Tracks</title>
+    </head>
+    <body>
+        <h1>Tracks</h1>
+        <table>
+            <!-- Header Row-->
+             <tr>
+                {% for header in track_headers[1:] %}
+                <td>
+                    <b>
+                        {{ header[0] }}
+                    </b>
+                </td>
+                {% endfor %}
+             </tr>
+
+             <!-- Data Row -->
+              {% for record in track_data %}
+              <tr>
+                {% for field in record[1:] %}
+                    <td>
+                        {{ field }}
+                    </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+        </table>
+    </body>
+</html>
