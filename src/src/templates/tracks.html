@@ -21,7 +21,13 @@
               <tr>
                 {% for field in record[1:] %}
                     <td>
-                        {{ field }}
+                        {% if loop.index == 1 %}
+                            <a href="./{{record[0]}}">
+                                {{ field }}
+                            </a>
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
                     </td>
                 {% endfor %}
               </tr>

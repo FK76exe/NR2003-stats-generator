@@ -1,0 +1,39 @@
+<html>
+    <head>
+        <title>
+            Track Overview
+        </title>
+    </head>
+    <body>
+        <h1>{{track_info[0]}}</h1>
+        Track Length (miles): {{track_info[1]}} <br>
+        Plate Track? {{'Yes' if track_info[2] else 'No'}} <br>
+        Track Type: {{track_info[3]}} <br>
+        
+        <hr>
+
+        {% for series in win_records.keys() %}
+            <h2>{{series}} History</h2>
+            <table>
+                <tr>
+                    {% for header in win_headers %}
+                        <td>
+                            <b>
+                                {{header}}
+                            </b>
+                        </td>
+                    {% endfor %}
+                </tr>
+                {% for record in win_records[series] %}
+                    <tr>
+                        {% for field in record %}
+                        <td>
+                            {{field}}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endfor %}
+    </body>
+</html>
