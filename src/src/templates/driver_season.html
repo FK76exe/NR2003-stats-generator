@@ -1,0 +1,39 @@
+{% from "macro.html" import navLink with context %}
+<html>
+    <head>
+        <title>{{season ~ " " ~ series}}</title>
+    </head>
+    <body>
+
+        {{ navLink('Home', '/') }}
+        
+        <h1>
+            {{ driver ~ "'s Results for Series " ~ series ~ " Season " ~ season}}
+        </h1>
+
+        <a href="/driver/{{driver}}">See overall statistics for {{driver}}</a>
+
+        <table>
+            <tr>
+                {% for header in headers %}
+                    <td><b>{{header}}</b></td>
+                {% endfor %}
+            </tr>
+            {% for record in records %}
+            <tr>
+                {% for field in record %}
+                    {% if ((loop.index == 3 or loop.index == 4) and field == 1) or (loop.index == 10 and field != 'Running')%}
+                        <td style="color: red;">
+                            <b>{{ field }}</b>
+                        </td>
+                    {% else %}
+                        <td>
+                            {{field}}
+                        </td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>

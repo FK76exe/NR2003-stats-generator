@@ -26,7 +26,7 @@
             {% for value in row %}
                 <td>
                     {% if loop.first %}
-                        <a href="/driver/{{value | replace(' ', '_')}}">{{ value }}</a>
+                        <a href="/driver/{{value}}/{{series}}/{{season}}">{{ value }}</a>
                     {% else %}
                         {{ value }}
                     {% endif %}

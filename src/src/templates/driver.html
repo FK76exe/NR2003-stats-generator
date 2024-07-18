@@ -35,7 +35,7 @@
                         {% for value in row %}
                             <td>
                                 {% if loop.first %}
-                                    <a href="/points/{{series}}/{{value}}">{{value}}</a>
+                                    <a href="/series/{{series}}/{{value}}/points">{{value}}</a>
                                 {% else %}
                                     {{ value }}
                                 {% endif %}
