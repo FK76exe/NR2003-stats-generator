@@ -3,9 +3,11 @@ from markupsafe import escape
 import file_scraper as file_scraper
 import sqlite3
 from series import series_page
+from track import track_page
 
 app = Flask(__name__)
 app.register_blueprint(series_page)
+app.register_blueprint(track_page)
 
 DATABASE_NAME = "../../db/nr-stats-gen.db"
 
