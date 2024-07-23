@@ -2,4 +2,4 @@ db/*.db
 .vscode 
 env
 *.pyc
-notes.txt
+notes.*
