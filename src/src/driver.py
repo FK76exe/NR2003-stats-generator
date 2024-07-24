@@ -8,7 +8,10 @@ DATABASE_NAME = "../../db/nr-stats-gen.db"
 def driver_overview(game_id):
     data = []
 
-    query = f"SELECT year AS YEAR, series as SERIES, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS FROM points_view WHERE game_id = '{game_id}' ORDER BY YEAR ASC"
+    query = f"SELECT year AS YEAR, series as SERIES, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS, RANK \
+FROM (SELECT *,RANK() OVER(PARTITION BY series, year ORDER BY points DESC) as RANK from points_view) \
+where game_id = '{game_id}' \
+ORDER BY YEAR ASC"
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
         cursor.execute(query)
@@ -18,7 +21,7 @@ def driver_overview(game_id):
 
         # get aggregate data as well (use Nones for things that can't be aggregated)
         # || = concat
-        query = f"SELECT COUNT(*) || ' years', series as SERIES, SUM(RACES), SUM(WIN), SUM([TOP 5]), SUM([TOP 10]), SUM(POLE), SUM(LAPS), SUM(LED), '---', '---', SUM(DNF), SUM(LLF), SUM(POINTS) FROM points_view WHERE game_id = '{game_id}' GROUP BY series"
+        query = f"SELECT COUNT(*) || ' years', series as SERIES, SUM(RACES), SUM(WIN), SUM([TOP 5]), SUM([TOP 10]), SUM(POLE), SUM(LAPS), SUM(LED), '---', '---', SUM(DNF), SUM(LLF), SUM(POINTS), '---' FROM points_view WHERE game_id = '{game_id}' GROUP BY series"
         cursor.execute(query)
         data += cursor.fetchall()
 
@@ -31,6 +34,11 @@ def driver_overview(game_id):
             records_by_series[season_record[1]].append(season_record[:1] + season_record[2:])
 
     return render_template('driver.html', header=header, series_records=records_by_series, driver=game_id)
+
+@driver_page.route("/<game_id>/<series_id>/")
+def driver_results_by_series(game_id: str, series_id: int):
+    """list race results of a driver for a given series across all seasons, ordered by season and then race ID"""
+    pass
 
 """
 race name (or track if null) | track | finish | start | # | interval | led | points | status
