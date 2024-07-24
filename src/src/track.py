@@ -22,31 +22,24 @@ def get_tracks():
 def get_track_info(id):
     """Get track information by its id."""
     track_query = f"SELECT track_name, length_miles, uses_plate, track_type.type FROM tracks LEFT JOIN track_type on tracks.type = track_type.id WHERE length_miles > 0 AND tracks.id = {id}"
-    winners_query = f"SELECT b.name, season_num,game_id \
-FROM races \
-LEFT JOIN (\
-    SELECT race_id, game_id\
-    FROM race_records LEFT JOIN drivers ON drivers.id = race_records.driver_id \
-    WHERE finish_position = 1\
-    ) a ON races.id = a.race_id \
-LEFT JOIN (\
-    SELECT seasons.id, series.id as seriesID, series.name, season_num\
-    FROM seasons LEFT JOIN series ON seasons.series_id = series.id \
-    ) b ON races.season_id = b.id \
-LEFT JOIN tracks ON tracks.id = races.track_id \
-WHERE tracks.id = {id} \
-ORDER BY b.seriesID ASC, season_num ASC"
+    record_query = f"SELECT series_id, series, season_num, name, laps, miles, pole_sitter, winner, speed FROM track_race_overview WHERE id = {id}"
     
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
         cursor.execute(track_query)
         track_info = cursor.fetchall()[0]
 
-        cursor.execute(winners_query)
-        winners_records = cursor.fetchall()
-        grouped_records = group_by_col(winners_records)
+        cursor.execute(record_query)
+        data = cursor.fetchall()
 
-    return render_template("track_overview.html", win_records = grouped_records, win_headers = ['Season', 'Winner'], track_info = track_info)
+    records_by_series = {}
+    for season_record in data:
+        if tuple(season_record[:2]) not in records_by_series.keys():
+            records_by_series[tuple(season_record[:2])] = [season_record[2:]]
+        else:
+            records_by_series[tuple(season_record[:2])].append(season_record[2:])
+
+    return render_template("track_overview.html", records = records_by_series, headers = ['Season', 'Race', 'Laps', 'Miles', 'Pole Sitter', 'Winner', 'Speed (mph)'], track_info = track_info)
 
         
 def group_by_col(records: list):

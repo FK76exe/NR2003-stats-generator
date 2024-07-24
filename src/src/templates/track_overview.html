@@ -1,7 +1,7 @@
 <html>
     <head>
         <title>
-            Track Overview
+            {{track_info[0]}}
         </title>
     </head>
     <body>
@@ -12,11 +12,11 @@
         
         <hr>
 
-        {% for series in win_records.keys() %}
-            <h2>{{series}} History</h2>
+        {% for series in records.keys() %}
+            <h2>{{series[1]}}</h2>
             <table>
                 <tr>
-                    {% for header in win_headers %}
+                    {% for header in headers %}
                         <td>
                             <b>
                                 {{header}}
@@ -24,12 +24,22 @@
                         </td>
                     {% endfor %}
                 </tr>
-                {% for record in win_records[series] %}
+                {% for record in records[series] %}
                     <tr>
                         {% for field in record %}
-                        <td>
-                            {{field}}
-                        </td>
+                            {% if loop.first %}
+                                <td>
+                                    <a href="/series/{{series[0]}}/{{field}}/">{{field}}</a>
+                                </td>
+                            {% elif loop.index0 >= 4 and loop.index0 <= 5 %}
+                                <td>
+                                    <a href="/driver/{{field}}">{{field}}</a>
+                                </td>
+                            {% else %}
+                                <td>
+                                    {{field}}
+                                </td>
+                            {% endif %}
                         {% endfor %}
                     </tr>
                 {% endfor %}
