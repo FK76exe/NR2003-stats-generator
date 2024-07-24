@@ -22,7 +22,7 @@
             {% for record in records %}
             <tr>
                 {% for field in record %}
-                    {% if ((loop.index == 3 or loop.index == 4) and field == 1) or (loop.index == 10 and field != 'Running')%}
+                    {% if ((loop.index == 4 or loop.index == 5) and field == 1) or (loop.last and field != 'Running')%}
                         <td style="color: red;">
                             <b>{{ field }}</b>
                         </td>
@@ -35,5 +35,7 @@
             </tr>
             {% endfor %}
         </table>
+
+        <i>n = {{records | length}}</i>
     </body>
 </html>

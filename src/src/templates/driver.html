@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-    <title>Test</title>
+    <title>{{driver}}</title>
 </head>
 <body>
     <h1>
@@ -10,7 +10,7 @@
     <!-- Table of stats for each series driver has participated in -->
     {% for series in series_records.keys() %}
         <h2>
-            Statistics in {{ series }}
+            Statistics in {{ series[1] }}
         </h2>
         <table>
             <tr>
@@ -21,11 +21,20 @@
                 {% endfor %}
             </tr>
             {% for row in series_records[series] %}
+                <!-- last loop -->
                 {% if loop.last %}
                     <tr>
+                        <!-- for indicies 2 to 6, 1-based index -->
+                        {% set suffixes = ['all/', 'win/', 'top5/', 'top10/', 'pole/'] %}
                         {% for value in row %}
                             <td>
-                                <b>{{ value }}</b>
+                                <b>
+                                    {% if loop.index >= 2 and loop.index <= 6 %}
+                                        <a href="/driver/{{driver}}/{{series[0]}}/{{suffixes[loop.index-2]}}">{{value}}</a>
+                                    {% else %}
+                                        {{ value }}
+                                    {% endif %}
+                                </b>
                             </td>
                         {% endfor %}
                     </tr>
@@ -35,7 +44,9 @@
                         {% for value in row %}
                             <td>
                                 {% if loop.first %}
-                                    <a href="/series/{{series}}/{{value}}/points">{{value}}</a>
+                                    <a href="/series/{{series[0]}}/{{value}}/">{{value}}</a>
+                                {% elif loop.index == 2 %}
+                                    <a href="/driver/{{driver}}/{{series[0]}}/{{loop.previtem}}">{{value}}</a>
                                 {% else %}
                                     {{ value }}
                                 {% endif %}
