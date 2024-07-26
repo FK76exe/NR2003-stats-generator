@@ -1,13 +1,19 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 from markupsafe import escape
 import sqlite3
 
 track_page = Blueprint('track_page', __name__, url_prefix='/tracks')
 DATABASE_NAME = "../../db/nr-stats-gen.db"
 
-@track_page.route("/")
-def get_tracks():
-    """Return list of all tracks in database"""
+@track_page.route("/", methods=['GET', 'POST'])
+def track_main():
+    """Handle requests to tracks/ endpoint"""
+    message = None
+    if request.method == "POST":
+        message = add_track(request.form)
+    return get_tracks(message)
+
+def get_tracks(message):
     query = "SELECT tracks.id, track_name, length_miles, uses_plate, track_type.type FROM tracks LEFT JOIN track_type on tracks.type = track_type.id WHERE length_miles > 0 ORDER BY track_name"
     track_data = []
     track_headers = ()
@@ -16,7 +22,18 @@ def get_tracks():
         cursor.execute(query)
         track_data = cursor.fetchall()
         track_headers = cursor.description
-    return render_template("tracks.html", track_headers=track_headers, track_data=track_data)
+    return render_template("tracks.html", track_headers=track_headers, track_data=track_data, message=message)
+
+def add_track(form):
+    query = f"INSERT INTO tracks (track_name, length_miles, uses_plate, type) VALUES('{form['track_name']}', {form['track_length']}, {1 if 'uses_plate' in form.keys() else 0}, {form['track_type']})"
+
+    with sqlite3.connect(DATABASE_NAME) as con:
+        try:
+            cursor = con.cursor()
+            cursor.execute(query)
+        except sqlite3.Error as e:
+            return f"ERROR: {str(e)}"
+    return f"{form['track_name']} has been successfully added"
 
 @track_page.route("/<id>/")
 def get_track_info(id):
