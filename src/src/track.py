@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for
 from markupsafe import escape
 import sqlite3
 
@@ -35,6 +35,21 @@ def add_track(form):
             return f"ERROR: {str(e)}"
     return f"{form['track_name']} has been successfully added"
 
+@track_page.route("/<id>/delete/", methods=['DELETE'])
+def delete_track(id):
+    # each query string can only have one statement
+    pragma_query = "PRAGMA foreign_keys = ON"
+    delete_query = f"DELETE FROM tracks WHERE id = {id};"
+    with sqlite3.connect(DATABASE_NAME) as con:
+        try:
+            cursor = con.cursor()
+            cursor.execute(pragma_query)
+            cursor.execute(delete_query)
+        except sqlite3.Error as e:
+            print(f"ERROR: {str(e)}")
+    # this creates a redirect response object, which must be handled by caller
+    return redirect(url_for('track_page.track_main'), code=302)
+
 @track_page.route("/<id>/")
 def get_track_info(id):
     """Get track information by its id."""
@@ -57,7 +72,6 @@ def get_track_info(id):
             records_by_series[tuple(season_record[:2])].append(season_record[2:])
 
     return render_template("track_overview.html", records = records_by_series, headers = ['Season', 'Race', 'Laps', 'Miles', 'Pole Sitter', 'Winner', 'Speed (mph)'], track_info = track_info)
-
         
 def group_by_col(records: list):
     """Create a dictionary where each key is mapped to a list of records with key in field of index 0."""
