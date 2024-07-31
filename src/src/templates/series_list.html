@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <title>
+            Series
+        </title>
+    </head>
+    <body>
+        <h1>Series</h1>
+        <ul>
+            {% for record in series_list %}
+            <li>
+                <a href="./{{record[0]}}">{{record[1]}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

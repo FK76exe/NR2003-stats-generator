@@ -5,6 +5,17 @@ import sqlite3
 series_page = Blueprint('series_page', __name__, url_prefix='/series')
 DATABASE_NAME = "../../db/nr-stats-gen.db"
 
+@series_page.route("/")
+def list_all_series():
+    """List all series available"""
+    data = []
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        cursor.execute(f"SELECT * FROM series")
+        data = cursor.fetchall()
+    return render_template("series_list.html", series_list = data)
+        
+
 @series_page.route("/<series_id>/")
 def get_series_info(series_id):
     """Get information about a series by `series_id`"""
