@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for
 from markupsafe import escape
 import sqlite3
 
@@ -6,11 +6,10 @@ series_page = Blueprint('series_page', __name__, url_prefix='/series')
 DATABASE_NAME = "../../db/nr-stats-gen.db"
 
 @series_page.route("/", methods=['GET', 'POST'])
-def main_page():
+def main():
     if request.method == 'POST':
         add_track(request.form)
     return list_all_series()
-
 
 def add_track(form):
     query = f"INSERT INTO series (name) VALUES ('{form['series_name']}')"
@@ -18,7 +17,6 @@ def add_track(form):
         cursor = con.cursor()
         cursor.execute(query)
     return list_all_series()
-
 
 def list_all_series():
     """List all series available"""
@@ -28,7 +26,6 @@ def list_all_series():
         cursor.execute(f"SELECT * FROM series")
         data = cursor.fetchall()
     return render_template("series_list.html", series_list = data)
-        
 
 @series_page.route("/<series_id>/")
 def get_series_info(series_id):
@@ -76,6 +73,7 @@ def get_schedule(series, season):
         cursor = con.cursor()
 
         season_id_query = f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}"
+        print(season_id_query)
         season_id = cursor.execute(season_id_query).fetchall()[0][0]
 
         query = f"SELECT track_name AS Track, game_id AS Winner FROM races LEFT JOIN tracks ON track_id = tracks.id LEFT JOIN (SELECT race_id, game_id FROM race_records LEFT JOIN drivers ON driver_id = drivers.id WHERE finish_position = 1) ON race_id = races.id WHERE season_id = {season_id}"
@@ -99,3 +97,15 @@ def show_series(series, season):
         header = ["RANK"] + [col[0] for col in cursor.description]
         data = cursor.fetchall()
     return render_template('season_table.html',header=header, records=data, series=series, season=season)
+
+@series_page.route("/<series>/delete/", methods = ['DELETE'])
+def delete_series(series):
+    """Delete series based on ID"""
+    pragma_query = "PRAGMA foreign_keys = ON;"
+    delete_query = f"DELETE FROM series WHERE id = {series}"
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        cursor.execute(pragma_query)
+        cursor.execute(delete_query)
+        con.commit() # add this, so that everyone can see deletion
+    return redirect(url_for('series_page.main'), code=302)
