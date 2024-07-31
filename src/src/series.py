@@ -53,7 +53,7 @@ GROUP BY season_num
         series_name = cursor.execute(f"SELECT name FROM series WHERE id = {series_id}").fetchall()[0][0]
     
     return render_template('series.html', driver_headers = driver_desc, driver_stats = driver_stats,
-                           season_headers = season_desc, season_stats = season_stats, series = series_name)
+                           season_headers = season_desc, season_stats = season_stats, series = series_name, id = series_id)
 
 @series_page.route("/<series>/<season>/")
 def get_schedule(series, season):

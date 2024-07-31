@@ -22,7 +22,7 @@
                 {% for stat in season %}
                 <td>
                     {% if loop.index == 1 %}
-                        <a href="/points/{{series}}/{{stat}}">{{stat}}</a>
+                        <a href="/series/{{id}}/{{stat}}/points">{{stat}}</a>
                     {% else %}
                         {{stat}}
                     {% endif %}
