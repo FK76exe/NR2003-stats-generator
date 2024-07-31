@@ -1,11 +1,25 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 from markupsafe import escape
 import sqlite3
 
 series_page = Blueprint('series_page', __name__, url_prefix='/series')
 DATABASE_NAME = "../../db/nr-stats-gen.db"
 
-@series_page.route("/")
+@series_page.route("/", methods=['GET', 'POST'])
+def main_page():
+    if request.method == 'POST':
+        add_track(request.form)
+    return list_all_series()
+
+
+def add_track(form):
+    query = f"INSERT INTO series (name) VALUES ('{form['series_name']}')"
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        cursor.execute(query)
+    return list_all_series()
+
+
 def list_all_series():
     """List all series available"""
     data = []
