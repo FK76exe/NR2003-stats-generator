@@ -33,5 +33,35 @@
               </tr>
               {% endfor %}
         </table>
+        <hr>
+        <!-- Form for adding a new track -->
+        Add a new track:
+        <br>
+        <br>
+        <form method="post">
+            Enter Track Name:
+            <input name="track_name" type="text" required>
+            <br><br>
+            Track Length (miles):
+            <input name="track_length" type="number" required step="0.001">
+            <br><br>
+            Is this a restrictor plate / drafting track?
+            <input name="uses_plate" type="checkbox" value="yes" disabled>
+            <br><br>
+            What type of track is it?
+            <select name="track_type" required>
+                <option value="1">Street Course</option>
+                <option value="2">Road Course</option>
+                <option value="3">Dirt Oval</option>
+                <option value="4">Paved Oval</option>
+            </select>
+            <br><br>
+            <input type="submit" value="Submit">
+        </form>
+        <br>
+        <br>
+        {% if message %}
+            <i style="color: red;">{{message}}</i>
+        {% endif %}
     </body>
 </html>
