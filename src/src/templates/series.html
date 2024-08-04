@@ -1,3 +1,5 @@
+{% from "macro.html" import initial_deletion, confirm_deletion with context %}
+
 <html>
     <head>
         <title>
@@ -60,26 +62,10 @@
             {% endfor %}
         </table>
 
-        <br>
-        <br>
-        <br>
-        <hr>
-        <b style="color: red;">WARNING: DELETING THE SERIES WILL DELETE ALL SEASONS ASSOCIATED WITH SERIES</b>
-        <button onclick="ConfirmDeletion()">
-            Delete Series
-        </button>
+        {{ initial_deletion('WARNING: DELETING THE SERIES WILL DELETE ALL SEASONS ASSOCIATED WITH SERIES') }}
+
     </body>
     <script>
-        function ConfirmDeletion() {
-            var confirmed = confirm("ANOTHER WARNING: EVERY SEASON ASSOCIATED WITH THIS SERIES WILL BE DELETED. THIS ACTION CANNOT BE UNDONE.")
-            if (confirmed) {
-                fetch("./delete", {method: 'DELETE'})
-                    .then(response => {
-                        if (response.redirected) {
-                            window.location.href = response.url;
-                        }
-                    }).catch(error => console.log(error))
-            }
-        }       
+        {{ confirm_deletion("ANOTHER WARNING: EVERY SEASON ASSOCIATED WITH THIS SERIES WILL BE DELETED. THIS ACTION CANNOT BE UNDONE.") }}
     </script>
 </html>
