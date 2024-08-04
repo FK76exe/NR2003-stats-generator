@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <title>
+            Series
+        </title>
+    </head>
+    <body>
+        <h1>Series</h1>
+        <ul>
+            {% for record in series_list %}
+            <li>
+                <a href="./{{record[0]}}">{{record[1]}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        <hr>
+        Add a new series:
+        <br>
+        <br>
+        <form method="post">
+            Enter Series Name:
+            <input name="series_name" type="text" required>
+            <br>
+            <br>
+            <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>

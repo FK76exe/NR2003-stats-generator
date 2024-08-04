@@ -39,13 +39,14 @@ CREATE TABLE races (
 -- seasons
 CREATE TABLE seasons (
     id         INTEGER PRIMARY KEY,
-    series_id  INTEGER REFERENCES series (id),
+    series_id  INTEGER REFERENCES series (id) ON DELETE CASCADE,
     season_num INTEGER NOT NULL,
     UNIQUE (
         series_id,
         season_num
     )
 );
+
 
 -- series
 CREATE TABLE series (
