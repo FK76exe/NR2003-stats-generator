@@ -5,3 +5,26 @@
         </a>
     </li>
 {% endmacro %}
+
+{% macro initial_deletion(msg) %}
+<br><br><br>
+<hr>
+<b style="color: red">{{msg}}</b>
+<button onclick="ConfirmDeletion()">
+    Delete Track
+</button>
+{% endmacro %}
+
+{% macro confirm_deletion(msg) %}
+function ConfirmDeletion() {
+    var confirmed = confirm("{{msg}}")
+    if (confirmed) {
+        fetch("./delete", {method: 'DELETE'})
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            }).catch(error => console.log(error))
+    }
+}
+{% endmacro %}
