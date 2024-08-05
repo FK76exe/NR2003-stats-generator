@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from markupsafe import escape
 import sqlite3
+import file_scraper as file_scraper
 
 series_page = Blueprint('series_page', __name__, url_prefix='/series')
 DATABASE_NAME = "../../db/nr-stats-gen.db"
@@ -8,10 +9,10 @@ DATABASE_NAME = "../../db/nr-stats-gen.db"
 @series_page.route("/", methods=['GET', 'POST'])
 def main():
     if request.method == 'POST':
-        add_track(request.form)
+        add_series(request.form)
     return list_all_series()
 
-def add_track(form):
+def add_series(form):
     query = f"INSERT INTO series (name) VALUES ('{form['series_name']}')"
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
@@ -66,22 +67,29 @@ GROUP BY season_num
     return render_template('series.html', driver_headers = driver_desc, driver_stats = driver_stats,
                            season_headers = season_desc, season_stats = season_stats, series = series_name, id = series_id)
 
-@series_page.route("/<series>/<season>/")
-def get_schedule(series, season):
+@series_page.route("/<series>/<season>/", methods=['GET', 'POST'])
+def season_main(series, season):
     """return list of races, with track and winner for a given season."""
+    
+    if request.method == 'POST':
+        return add_race(series, season, request)
+    else:
+        return get_schedule(series, season)
+
+def get_schedule(series, season):
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
 
         season_id_query = f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}"
         season_id = cursor.execute(season_id_query).fetchall()[0][0]
 
-        query = f"SELECT track_name AS Track, game_id AS Winner FROM races LEFT JOIN tracks ON track_id = tracks.id LEFT JOIN (SELECT race_id, game_id FROM race_records LEFT JOIN drivers ON driver_id = drivers.id WHERE finish_position = 1) ON race_id = races.id WHERE season_id = {season_id}"
+        query = f"SELECT name, track_name AS Track, game_id AS Winner FROM races LEFT JOIN tracks ON track_id = tracks.id LEFT JOIN (SELECT race_id, game_id FROM race_records LEFT JOIN drivers ON driver_id = drivers.id WHERE finish_position = 1) ON race_id = races.id WHERE season_id = {season_id}"
         schedule = cursor.execute(query).fetchall()
 
         series_query = f"SELECT name FROM seasons LEFT JOIN series ON seasons.series_id = series.id WHERE seasons.id={season_id}"
         series_name = cursor.execute(series_query).fetchall()
 
-    return render_template('season.html', schedule=schedule, season=season, series_name=series_name[0][0], series=series)
+    return render_template('season.html', schedule=schedule, season=season, series_name=series_name[0][0], series=series, tracks=get_tracks())
 
 @series_page.route("/<series>/<season>/points/")
 def show_series(series, season):
@@ -141,3 +149,51 @@ def delete_season(series, season):
         cursor.execute(delete_query)
         con.commit() # add this, so that everyone can see deletion
     return redirect("../", code=302)
+
+def add_race(series, season, request):
+    """Add race to a given season"""
+
+    race_name = request.form['name']
+    race_track = request.form['track']
+    race_file = request.files['file']
+    processed = file_scraper.scrape_race_results(race_file.read().decode("windows-1252"))
+
+    drivers = [(row[3], ) for row in processed[1:]]
+
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+
+        # get season id
+        cursor.execute(f"SELECT id FROM seasons WHERE series_id={series} AND season_num={season}")
+        race_season = cursor.fetchone()[0]
+        
+        cursor.execute(f"INSERT INTO races (name, season_id, race_file, track_id) VALUES ('{race_name}', {int(race_season)}, '{race_file.filename}', {int(race_track)})")
+        race_id = cursor.lastrowid
+
+        print(race_id)
+
+        # create drivers if they don't exist
+        cursor.executemany(f"INSERT OR IGNORE INTO drivers (game_id) VALUES (?)", drivers)
+
+        # get id of drivers
+        cursor.execute(f"SELECT id, game_id FROM drivers")
+        driver_data = cursor.fetchall()
+        
+        driver_id_dict = {}
+        for driver in driver_data:
+            driver_id_dict[driver[1]] = driver[0]
+
+        # add driver data
+        for row in processed[1:]:
+            cursor.execute(f"INSERT INTO race_records VALUES ({race_id}, {row[0]}, {row[1]}, {row[2]}, {int(driver_id_dict[row[3]])}, '{row[4]}', {row[5]}, {row[6]}, {row[7]}, '{row[8]}')")
+
+        con.commit()
+
+    return get_schedule(series, season)
+
+def get_tracks() -> tuple[tuple]:
+    """Get id and name of all tracks registered in database."""
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        cursor.execute("SELECT id, track_name FROM tracks")
+        return cursor.fetchall()
