@@ -73,7 +73,6 @@ def get_schedule(series, season):
         cursor = con.cursor()
 
         season_id_query = f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}"
-        print(season_id_query)
         season_id = cursor.execute(season_id_query).fetchall()[0][0]
 
         query = f"SELECT track_name AS Track, game_id AS Winner FROM races LEFT JOIN tracks ON track_id = tracks.id LEFT JOIN (SELECT race_id, game_id FROM race_records LEFT JOIN drivers ON driver_id = drivers.id WHERE finish_position = 1) ON race_id = races.id WHERE season_id = {season_id}"
@@ -109,3 +108,24 @@ def delete_series(series):
         cursor.execute(delete_query)
         con.commit() # add this, so that everyone can see deletion
     return redirect(url_for('series_page.main'), code=302)
+
+@series_page.route("/<series>/add-season/", methods = ['POST'])
+def add_season(series):
+    """Add season to a given series."""
+    season_num = request.form['season_num']
+    query = f"INSERT INTO seasons (series_id, season_num) VALUES ({series}, {season_num})"
+    
+    try:
+        with sqlite3.connect(DATABASE_NAME) as con:
+            cursor = con.cursor()
+            cursor.execute(query)
+            con.commit()
+        return get_schedule(series, season_num)
+    except sqlite3.IntegrityError as e:
+        return f"""
+    <html>
+        <b>ERROR</b>
+        {str(e)}
+        <a href="../">Go back to series page</a>
+    </html>
+    """
