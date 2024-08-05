@@ -129,3 +129,15 @@ def add_season(series):
         <a href="../">Go back to series page</a>
     </html>
     """
+
+@series_page.route("<series>/<season>/delete", methods = ['DELETE'])
+def delete_season(series, season):
+    """Delete season of a series"""
+    pragma_query = "PRAGMA foreign_keys = ON;"
+    delete_query = f"DELETE FROM seasons WHERE series_id={series} AND season_num={season}"
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        cursor.execute(pragma_query)
+        cursor.execute(delete_query)
+        con.commit() # add this, so that everyone can see deletion
+    return redirect("../", code=302)
