@@ -12,16 +12,23 @@ def race_main():
 def get_race_records(race_id):
     """Get race records by race id."""
     race_records = []
+
     race_info = {'name': None, 'track_name': None, 'track_length': None, 'track_type': None, 'track_plate': None, 'series_id': None, 'series_name': None, 'season': None}
 
     # gonna need race records and race info (name, track, series, season)
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
-        race_records = cursor.execute(f"""SELECT finish_position, start_position, CASE WHEN car_number > 1999 THEN '0' || (car_number-2000) ELSE car_number END AS number, game_id, interval, laps, led, points, finish_status
+        i = cursor.execute(f"""SELECT finish_position AS finish, start_position AS start, CASE WHEN car_number > 1999 THEN '0' || (car_number-2000) ELSE car_number END AS number, game_id AS driver, interval, laps, led, points, finish_status AS status
                                 FROM race_records
                                 LEFT JOIN drivers ON drivers.id = race_records.driver_id
                                 WHERE race_id = {race_id}"""
                         ).fetchall()
+        keys = [j[0] for j in cursor.description]
+        for record in i:
+            race_record = {}
+            for k, key in enumerate(keys):
+                race_record.update({key: record[k]})
+            race_records.append(race_record)
         
         # for race name and track info. Apparently short queries are better than big ones? https://dba.stackexchange.com/questions/76973/what-is-faster-one-big-query-or-many-small-queries
         track_info = cursor.execute(f"""
