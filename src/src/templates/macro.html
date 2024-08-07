@@ -6,12 +6,12 @@
     </li>
 {% endmacro %}
 
-{% macro initial_deletion(msg) %}
+{% macro initial_deletion(msg, button_txt) %}
 <br><br><br>
 <hr>
 <b style="color: red">{{msg}}</b>
 <button onclick="ConfirmDeletion()">
-    Delete Track
+    {{button_txt}}
 </button>
 {% endmacro %}
 

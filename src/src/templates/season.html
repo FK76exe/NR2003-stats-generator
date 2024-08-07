@@ -1,4 +1,4 @@
-{% from "macro.html" import navLink with context %}
+{% from "macro.html" import navLink, initial_deletion, confirm_deletion with context %}
 <html>
     <head>
         <title>
@@ -22,6 +22,9 @@
                     #
                 </td>
                 <td>
+                    Name
+                </td>
+                <td>
                     Track
                 </td>
                 <td>
@@ -32,10 +35,38 @@
             {% for race in schedule %}
                 <tr>
                     <td>{{loop.index}}</td>
-                    <td>{{race[0]}}</td>
-                    <td>{{race[1]}}</td>
+                    {% for record in race %}
+                    <td>{{race[loop.index0]}}</td>
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </table>
+
+        <hr>
+        <!-- Add a new race -->
+        <form method="post" enctype="multipart/form-data">
+
+            <input type="text" name="name" required>
+            <br><br>
+
+            <label for="tracks">Choose a track:</label>
+            <select name="track" required>
+                {% for t in tracks %}
+                    <option value="{{t[0]}}">{{t[1]}}</option>
+                {% endfor %}
+            </select>
+            <br><br>
+
+            <label for="file">File:</label>
+            <input type="file" name="file" required >
+
+            <input type="submit" value="Submit">
+        </form>
+    
+        {{ initial_deletion("WARNING: DELETING THE SEASON WILL DELETE ALL ASSOCIATED RACES.", "Delete Season") }}
+
     </body>
+    <script>
+        {{ confirm_deletion("ANOTHER WARNING: EVERY RACE ASSOCIATED WITH THIS SEASON WILL BE DELETED. THIS ACTION CANNOT BE UNDONE.") }}
+    </script>
 </html>
