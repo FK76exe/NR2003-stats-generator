@@ -1,5 +1,4 @@
-from flask import Flask, render_template, request
-from markupsafe import escape
+from flask import Flask, render_template
 import file_scraper as file_scraper
 import sqlite3
 from series import series_page
