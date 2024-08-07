@@ -8,7 +8,7 @@ DATABASE_NAME = "../../db/nr-stats-gen.db"
 def race_main():
     return "<h1>Hi</h1>"
 
-@race_page.route("/<race_id>")
+@race_page.route("/<race_id>/")
 def get_race_records(race_id):
     """Get race records by race id."""
     race_records = []

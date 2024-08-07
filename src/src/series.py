@@ -83,8 +83,8 @@ def get_schedule(series, season):
         season_id_query = f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}"
         season_id = cursor.execute(season_id_query).fetchall()[0][0]
 
-        query = f"SELECT name, track_name AS Track, game_id AS Winner FROM races LEFT JOIN tracks ON track_id = tracks.id LEFT JOIN (SELECT race_id, game_id FROM race_records LEFT JOIN drivers ON driver_id = drivers.id WHERE finish_position = 1) ON race_id = races.id WHERE season_id = {season_id}"
-        schedule = cursor.execute(query).fetchall()
+        query = f"SELECT races.id as race_id, name, tracks.id as track_id, track_name AS Track, game_id AS Winner FROM races LEFT JOIN tracks ON track_id = tracks.id LEFT JOIN (SELECT race_id, game_id FROM race_records LEFT JOIN drivers ON driver_id = drivers.id WHERE finish_position = 1) ON race_id = races.id WHERE season_id = {season_id}"
+        schedule = [{'race_id': i[0], 'race_name': i[1], 'track_id': i[2], 'track_name': i[3], 'winner': i[4]} for i in cursor.execute(query).fetchall()]
 
         series_query = f"SELECT name FROM seasons LEFT JOIN series ON seasons.series_id = series.id WHERE seasons.id={season_id}"
         series_name = cursor.execute(series_query).fetchall()
