@@ -26,14 +26,4 @@ def home():
             else:
                 season_year_dict[s].append(y)
 
-    return render_template('home.html', season_year_dict=season_year_dict)        
-
-@app.route("/seasons/<series_id>/")
-def get_seasons_by_series(series_id):
-    """Get all seasons linked to `series_id`"""
-    with sqlite3.connect(DATABASE_NAME) as con:
-        cursor = con.cursor()
-        query = f"SELECT id, season_num FROM seasons WHERE series_id = {series_id}"
-        cursor.execute(query)
-        data = cursor.fetchall()
-        return data
+    return render_template('home.html', season_year_dict=season_year_dict)
