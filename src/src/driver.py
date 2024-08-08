@@ -4,7 +4,8 @@ import sqlite3
 driver_page = Blueprint("driver_page", __name__, url_prefix='/driver')
 DATABASE_NAME = "../../db/nr-stats-gen.db"
 # use this as a base, then add where clauses onto it in practice
-GET_DRIVER_RESULTS_QUERY = "season_num, race_name, track_name, finish_position, start_position, car_number, interval, laps, led, points, finish_status \
+GET_DRIVER_RESULTS_QUERY = "race_name as Race, race_id as Race_ID, track_name as Track, finish_position as Finish, start_position as Start, \
+car_number as Number, interval as Interval, laps as Laps, led as Led, points as Points, finish_status as Status \
 FROM race_records \
 LEFT JOIN drivers ON driver_id = drivers.id \
 RIGHT JOIN ( \
@@ -13,7 +14,6 @@ RIGHT JOIN ( \
     LEFT JOIN tracks ON races.track_id = tracks.id \
     RIGHT JOIN (SELECT season_num, series_id, id AS season_id FROM seasons) a ON races.season_id = a.season_id \
 ) b ON race_records.race_id = b.id"
-RACE_RECORD_HEADER = ['Season','Race', 'Track', 'Finish', 'Start', 'Car #', 'Interval', 'Laps', 'Led', 'Points', 'Status']
 
 @driver_page.route("/<game_id>/")
 def driver_overview(game_id):
@@ -57,15 +57,24 @@ def driver_results_by_series(game_id: str, series_id: int, filter:str):
     data = []
     filter_dict = {'all': '', 'win': 'AND finish_position = 1', 'top5': 'AND finish_position <= 5', 'top10': 'AND finish_position <=10', 'pole': 'AND start_position = 1'}
     
-    query = f"SELECT {GET_DRIVER_RESULTS_QUERY} WHERE game_id = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY season_num ASC, race_id ASC"
+    query = f"SELECT season_num as Year, {GET_DRIVER_RESULTS_QUERY} WHERE game_id = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY season_num ASC, race_id ASC"
     
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
         cursor.execute(query)
         data = cursor.fetchall()
+        headers = [h[0] for h in cursor.description]
         series_name = get_series_name_from_id(series_id, cursor)
 
-    return render_template('driver_season.html', records=data, series=series_name, driver=game_id, headers=RACE_RECORD_HEADER)
+    # create list of dicts
+    records = []
+    for record in data:
+        record_dict = {}
+        for i, header in enumerate(headers):
+            record_dict.update({header: record[i]})
+        records.append(record_dict)
+
+    return render_template('driver_season.html', records=records, series=series_name, driver=game_id, headers=headers)
 
 """
 race name (or track if null) | track | finish | start | # | interval | led | points | status
@@ -84,10 +93,19 @@ def driver_results_by_season(game_id: str, series_id: int, season_num: int):
 
         cursor.execute(query)
         data = cursor.fetchall()
-
+        headers = [h[0] for h in cursor.description]
         series_name = get_series_name_from_id(series_id, cursor)
 
-    return render_template('driver_season.html', records=data, series=series_name, season=season_num, driver=game_id, headers=RACE_RECORD_HEADER)
+    # create list of dicts
+    records = []
+    for record in data:
+        record_dict = {}
+        for i, header in enumerate(headers):
+            record_dict.update({header: record[i]})
+        records.append(record_dict)
+
+
+    return render_template('driver_season.html', records=records, series=series_name, season=season_num, driver=game_id, headers=headers)
 
 def get_series_name_from_id(series_id: int, cursor: sqlite3.Cursor):
     return cursor.execute(f"SELECT name FROM series WHERE id = {series_id}").fetchone()[0]
