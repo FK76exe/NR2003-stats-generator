@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect
 import sqlite3
 
 race_page = Blueprint("race_page", __name__, url_prefix="/race")
@@ -50,4 +50,17 @@ def get_race_records(race_id):
 
         return render_template("race.html", info=race_info, records=race_records)
         
+@race_page.route("/<race_id>/delete", methods = ['DELETE'])
+def delete_race(race_id):
+    """Delete race."""
+    pragma_query = "PRAGMA foreign_keys = ON;"
+    delete_query = f"DELETE FROM races WHERE id = {race_id}"
+    season_series_query = f"SELECT series_id, season_num FROM races LEFT JOIN seasons ON seasons.id = races.season_id WHERE races.id={race_id}"
 
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        series, season = cursor.execute(season_series_query).fetchone()
+        cursor.execute(pragma_query)
+        cursor.execute(delete_query)
+        con.commit() # add this, so that everyone can see deletion
+    return redirect(f"/series/{series}/{season}/", code=302)

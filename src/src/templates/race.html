@@ -1,3 +1,5 @@
+{% from "macro.html" import initial_deletion, confirm_deletion with context %}
+
 <html>
     <head>
         <title>
@@ -44,5 +46,12 @@
             </tr>
             {% endfor %}
         </table>
+
+        {{ initial_deletion("WARNING: DELETING THE RACE WILL DELETE ALL ASSOCIATED RECORDS.", "Delete Race") }}
+
     </body>
+
+    <script>
+        {{ confirm_deletion("ANOTHER WARNING: EVERY RECORD ASSOCIATED WITH THIS RACE WILL BE DELETED. THIS ACTION CANNOT BE UNDONE.") }}
+    </script>
 </html>
