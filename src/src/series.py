@@ -156,7 +156,7 @@ def add_race(series, season, request):
     race_name = request.form['name']
     race_track = request.form['track']
     race_file = request.files['file']
-    processed = file_scraper.scrape_race_results(race_file.read().decode("windows-1252"))
+    processed = file_scraper.scrape_results(race_file.read().decode("windows-1252"))
 
     drivers = [(row[3], ) for row in processed[1:]]
 
@@ -169,8 +169,6 @@ def add_race(series, season, request):
         
         cursor.execute(f"INSERT INTO races (name, season_id, race_file, track_id) VALUES ('{race_name}', {int(race_season)}, '{race_file.filename}', {int(race_track)})")
         race_id = cursor.lastrowid
-
-        print(race_id)
 
         # create drivers if they don't exist
         cursor.executemany(f"INSERT OR IGNORE INTO drivers (game_id) VALUES (?)", drivers)

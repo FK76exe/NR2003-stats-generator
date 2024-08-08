@@ -13,7 +13,7 @@ def listmaker(table):
 def purify_text(text):
     return text.replace('\r','').replace('\n','').replace('\t','').replace('*','')
     
-def scrape_race_results(html: str):
+def scrape_results(html: str):
     html_soup = soup(html,features="html.parser")
     tables = html_soup.findAll("table")
 
