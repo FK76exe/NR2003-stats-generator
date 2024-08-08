@@ -16,20 +16,20 @@
         <table>
             <tr>
                 {% for header in headers %}
-                    <td><b>{{header}}</b></td>
+                    {% if header != 'Race_ID' %}
+                        <td><b>{{header}}</b></td>
+                    {% endif %}
                 {% endfor %}
             </tr>
             {% for record in records %}
             <tr>
-                {% for field in record %}
-                    {% if ((loop.index == 4 or loop.index == 5) and field == 1) or (loop.last and field != 'Running')%}
-                        <td style="color: red;">
-                            <b>{{ field }}</b>
-                        </td>
-                    {% else %}
-                        <td>
-                            {{field}}
-                        </td>
+                {% for field in record.keys() %}
+                    {% if (field == 'Start' or field == 'Finish') and record[field] == 1 %}
+                        <td style="color: red;">{{record[field]}}</td>
+                    {% elif field == 'Race'%}
+                        <td><a href="/race/{{record['Race_ID']}}">{{record[field]}}</a></td>
+                    {% elif field != 'Race_ID' %}
+                        <td>{{record[field]}}</td>
                     {% endif %}
                 {% endfor %}
             </tr>

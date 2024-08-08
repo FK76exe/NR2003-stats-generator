@@ -1,0 +1,57 @@
+{% from "macro.html" import initial_deletion, confirm_deletion with context %}
+
+<html>
+    <head>
+        <title>
+            {{info['name']}}
+        </title>
+    </head>
+    <body>
+        <h1>
+            {{info['name']}}
+        </h1>
+        <p>
+            Series: <a href="/series/{{info['series_id']}}/">{{info['series_name']}}</a> <br>
+            Season: <a href="/series/{{info['series_id']}}/{{info['season']}}/">{{info['season']}}</a> <br>
+
+            Track: {{info['track_name']}} <br>
+            Length: {{info['track_length']}} miles <br>
+            Type: {{info['track_type']}} <br>
+            Is plate? {{info['track_plate']}} <br>
+        </p>
+        <br>
+        <table>
+            <tr>
+                <td>Finish</td>
+                <td>Start</td>
+                <td>#</td>
+                <td>Driver</td>
+                <td>Interval</td>
+                <td>Laps</td>
+                <td>Led</td>
+                <td>Points</td>
+                <td>Status</td>
+            </tr>
+            {% for record in records %}
+            <tr>
+                <td>{{record['finish']}}</td>
+                <td>{{record['start']}}</td>
+                <td>{{record['number']}}</td>
+                <td><a href="/driver/{{record['driver']}}/">{{record['driver']}}</a></td>
+                <td>{{record['interval']}}</td>
+                <td>{{record['laps']}}</td>
+                <td>{{record['led']}}</td>
+                <td>{{record['points']}}</td>
+                <td>{{record['status']}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        {{ initial_deletion("WARNING: DELETING THE RACE WILL DELETE ALL ASSOCIATED RECORDS.", "Delete Race") }}
+
+    </body>
+
+    <script>
+        {{ confirm_deletion("ANOTHER WARNING: EVERY RECORD ASSOCIATED WITH THIS RACE WILL BE DELETED. THIS ACTION CANNOT BE UNDONE.") }}
+    </script>
+</html>

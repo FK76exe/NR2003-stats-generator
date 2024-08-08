@@ -18,26 +18,18 @@
         <table>
             <!-- header row -->
              <tr>
-                <td>
-                    #
-                </td>
-                <td>
-                    Name
-                </td>
-                <td>
-                    Track
-                </td>
-                <td>
-                    Winner
-                </td>
+                <td>#</td>
+                <td>Race</td>
+                <td>Track</td>
+                <td>Winner</td>
              </tr>
              <!-- data row -->
             {% for race in schedule %}
                 <tr>
                     <td>{{loop.index}}</td>
-                    {% for record in race %}
-                    <td>{{race[loop.index0]}}</td>
-                    {% endfor %}
+                    <td><a href="/race/{{race['race_id']}}/">{{race['race_name']}}</a></td>
+                    <td><a href="/tracks/{{race['track_id']}}/">{{race['track_name']}}</a></td>
+                    <td><a href="/driver/{{race['winner']}}/">{{race['winner']}}</a></td>
                 </tr>
             {% endfor %}
         </table>
