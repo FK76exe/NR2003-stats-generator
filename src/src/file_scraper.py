@@ -26,11 +26,3 @@ def scrape_race_results(html: str):
     for i, title in enumerate(titles):
         race_dict.update({title: listmaker(tables[i])})
     return race_dict
-
-# f = open("C:\\Papyrus\\NASCAR Racing 2003 Season\\exports_imports\\mm_cup_02_cali.html")
-# #print(
-# scrape_race_results(
-#     f.read()
-#     )
-#   #  )# 
-# f.close()
