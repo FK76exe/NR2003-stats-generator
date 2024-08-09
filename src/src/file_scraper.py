@@ -1,62 +1,37 @@
 #time to try nr2003 parsing
 from bs4 import BeautifulSoup as soup
+import re
 
 
 def listmaker(table):
     td = table.findAll("td")
-    result_list = []
-    #seperate if qual or race:
-    if "TIME" in td[3].text:#for qual
-        for x in range(0,len(td)-4,4):
-            result_list.append([
-                text_purifier(td[x].text),
-                text_purifier(td[x+1].text),
-                text_purifier(td[x+2].text),
-                text_purifier(td[x+3].text)])
-    elif "LAP" in td[0].text: #for penalty
-        for x in range(0,len(td)-4,4):
-            result_list.append([
-                text_purifier(td[x].text),
-                text_purifier(td[x+1].text),
-                text_purifier(td[x+2].text),
-                text_purifier(td[x+3].text)])        
-    else:
-        for x in range(0,len(td),9): #for race
-            result_list.append([
-                text_purifier(td[x].text),
-                text_purifier(td[x+1].text),
-                text_purifier(td[x+2].text),
-                text_purifier(td[x+3].text),
-                text_purifier(td[x+4].text),
-                text_purifier(td[x+5].text),
-                text_purifier(td[x+6].text),
-                text_purifier(td[x+7].text),
-                text_purifier(td[x+8].text)])
-    return result_list
-            
-def get_track(html):
-    f = open(html,"rb")
-    contents = f.read()
-    html_soup = soup(contents,features="html.parser")
-    total_session = html_soup.findAll("h3")
-    return text_purifier(total_session[0].text)
+    if "TIME" in td[3].text or "LAP" in td[0].text: # for practice, qualifying, happy hour, and penalties
+        return [[purify_text(td[y].text) for y in range(x, x+4)] for x in range(0, len(td), 4)]      
+    else: # for race
+        return [[purify_text(td[y].text) for y in range(x, x+9)] for x in range(0, len(td), 9)]
 
-def text_purifier(text):
-    text = text.replace('\r','')
-    text = text.replace('\n','')
-    text = text.replace('\t','')
-    text = text.replace('*','')
-    return text
+def purify_text(text):
+    return text.replace('\r','').replace('\n','').replace('\t','').replace('*','')
     
-def scrape_race_results(html):
+def scrape_results(html: str):
     html_soup = soup(html,features="html.parser")
-    total_session = html_soup.findAll("table")
+    tables = html_soup.findAll("table")
 
-    race = total_session[-2]
+    # substring to find session headers
+    h3_pattern = re.compile("Session:\s([A-Z][a-z]*)")
+    titles = [purify_text(title.text).replace("Session: ", "") for title in html_soup.findAll("h3", string=h3_pattern)] + ['Penalties']
 
-    #purify them (make them a list)
-    race = listmaker(race)
+    # create dictionary {key=session, value=2d array of table}
+    race_dict = {}
+    for i, title in enumerate(titles):
+        records = listmaker(tables[i])
+        race_dict.update({title: records[1:] if len(records) > 1 else []})
+    return race_dict
 
-    return race
-
-# print(scrape_race_results("C:\\Papyrus\\NASCAR Racing 2003 Season\\exports_imports\\MM01_T_Daytona.html"))# 
+f = open("C:\\Papyrus\\NASCAR Racing 2003 Season\\exports_imports\\mm_cup_02_cali.html")
+#print(
+scrape_results(
+    f.read()
+    )
+  #  )# 
+f.close()

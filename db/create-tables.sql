@@ -7,6 +7,15 @@ CREATE TABLE drivers (
                     NOT NULL
 );
 
+-- penalties
+CREATE TABLE penalties (
+    id         INTEGER PRIMARY KEY,
+    race_id    INTEGER REFERENCES races (id) ON DELETE CASCADE,
+    lap        INTEGER,
+    number     INTEGER,
+    infraction VARCHAR,
+    penalty    VARCHAR
+);
 
 -- race records
 CREATE TABLE race_records (
@@ -61,6 +70,8 @@ CREATE TABLE track_type (
     type STRING  UNIQUE
 );
 
+INSERT INTO track_type (type) VALUES ('STREET COURSE'), ('ROAD COURSE'), ('DIRT OVAL'), ('PAVED OVAL');
+
 -- tracks
 CREATE TABLE tracks (
     id           INTEGER PRIMARY KEY
@@ -69,4 +80,23 @@ CREATE TABLE tracks (
     length_miles FLOAT,
     uses_plate   INT,
     type         INT     REFERENCES track_type (id) 
+);
+
+-- timed session type (fixed)
+CREATE TABLE timed_session_type (
+    id      INTEGER PRIMARY KEY,
+    session         UNIQUE
+);
+
+INSERT INTO timed_session_type (sessions) VALUES ('Practice'), ('Qualifying'), ('Happy Hour');
+
+-- timed sessions
+CREATE TABLE timed_sessions (
+    id        INTEGER PRIMARY KEY,
+    race_id   INTEGER REFERENCES races (id) ON DELETE CASCADE,
+    type      INTEGER REFERENCES timed_session_type (id),
+    position  INTEGER,
+    number    INTEGER,
+    driver_id INTEGER REFERENCES drivers (id) ON DELETE CASCADE,
+    time      VARCHAR
 );
