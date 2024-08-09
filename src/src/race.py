@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect
+from flask import Blueprint, render_template, redirect, abort
 import sqlite3
 
 race_page = Blueprint("race_page", __name__, url_prefix="/race")
@@ -48,8 +48,53 @@ def get_race_records(race_id):
         series = cursor.execute(f"SELECT name FROM series WHERE id = {season_info[0]}").fetchone()[0]
         race_info.update({'series_id': season_info[0], 'series_name': series, 'season': season_info[1]})
 
-        return render_template("race.html", info=race_info, records=race_records)
-        
+        return render_template("race.html", info=race_info, records=race_records, id=race_id)
+
+@race_page.route("/<race_id>/<filter>/")
+def get_nonrace_records(race_id, filter):
+    """Get non-race session records (practice, quali, happy hour, penalties)"""
+    match filter:
+        case "qualifying":
+            query = f"SELECT position as Position, number as Number, game_id as Driver, time as Time \
+                    FROM timed_sessions LEFT JOIN drivers ON drivers.id = timed_sessions.driver_id \
+                    WHERE type = 1 AND race_id = {race_id} \
+                    ORDER BY position ASC"
+        case "practice":
+            query = f"SELECT position as Position, number as Number, game_id as Driver, time as Time \
+                    FROM timed_sessions LEFT JOIN drivers ON drivers.id = timed_sessions.driver_id \
+                    WHERE type = 2 AND race_id = {race_id} \
+                    ORDER BY position ASC"
+        case "happy_hour":
+            query = f"SELECT position as Position, number as Number, game_id as Driver, time as Time \
+                    FROM timed_sessions LEFT JOIN drivers ON drivers.id = timed_sessions.driver_id \
+                    WHERE type = 3 AND race_id = {race_id} \
+                    ORDER BY position ASC"
+        case "penalties":
+            query = f"SELECT lap as Lap, number as Number, infraction as Infraction, penalty as Penalty \
+                    FROM penalties \
+                    WHERE race_id = {race_id} \
+                    ORDER BY lap ASC"
+        case _:
+            return abort(404, "Not a valid session.")
+
+    headers = []
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        data = cursor.execute(query).fetchall()
+        headers = [j[0] for j in cursor.description]
+    
+    if len(data) == 0:
+        return abort(404, "No records exist.")
+    
+    records = []
+    for record in data:
+        record_dict = {}
+        for h, header in enumerate(headers):
+            record_dict.update({header: record[h]})
+        records.append(record_dict)
+
+    return render_template("nonrace_record.html", records=records, session=filter, id=race_id, headers=headers)
+
 @race_page.route("/<race_id>/delete", methods = ['DELETE'])
 def delete_race(race_id):
     """Delete race."""

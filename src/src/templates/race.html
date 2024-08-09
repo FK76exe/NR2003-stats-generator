@@ -1,12 +1,14 @@
-{% from "macro.html" import initial_deletion, confirm_deletion with context %}
+{% from "macro.html" import initial_deletion, confirm_deletion, weekend_navigation with context %}
 
 <html>
     <head>
         <title>
             {{info['name']}}
         </title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
     </head>
     <body>
+        {{ weekend_navigation(id) }}
         <h1>
             {{info['name']}}
         </h1>

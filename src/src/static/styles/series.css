@@ -4,3 +4,17 @@ tr#header td {
     border-left: none;
     border-top: none;
 }
+
+#weekend-nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#weekend-nav > li {
+    display: inline;
+}
+
+#weekend0nav > li > a {
+    padding: 8px;
+}

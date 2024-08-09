@@ -28,3 +28,23 @@ function ConfirmDeletion() {
     }
 }
 {% endmacro %}
+
+{% macro weekend_navigation(id) %}
+<ul id="weekend-nav">
+     <li>
+        <a href="/race/{{id}}/">Race</a>
+    </li>
+    <li>
+        <a href="/race/{{id}}/qualifying/">Qualifying</a>
+    </li>
+    <li>
+        <a href="/race/{{id}}/practice/">Practice</a>
+    </li>
+    <li>
+        <a href="/race/{{id}}/happy_hour/">Happy Hour</a>
+    </li>
+    <li>
+        <a href="/race/{{id}}/penalties/">Penalties</a>
+    </li>
+</ul>
+{% endmacro %}

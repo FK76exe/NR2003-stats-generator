@@ -1,0 +1,35 @@
+{% from "macro.html" import weekend_navigation with context %}
+<html>
+    <head>
+        <title>
+            {{ session | replace("_", "") | title }}
+        </title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+        {{ weekend_navigation(id) }}
+
+        <h1>
+            {{ session | replace("_", "") | title }}
+        </h1>
+
+        <table>
+            <tr>
+                {% for header in headers %}
+                <td>
+                    <b>{{header}}</b>
+                </td>
+                {% endfor %}
+            </tr>
+            {% for record in records %}
+                <tr>
+                    {% for key in record.keys() %}
+                        <td>
+                            {{record[key]}}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
