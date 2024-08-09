@@ -57,12 +57,12 @@ def get_nonrace_records(race_id, filter):
         case "qualifying":
             query = f"SELECT position as Position, number as Number, game_id as Driver, time as Time \
                     FROM timed_sessions LEFT JOIN drivers ON drivers.id = timed_sessions.driver_id \
-                    WHERE type = 1 AND race_id = {race_id} \
+                    WHERE type = 2 AND race_id = {race_id} \
                     ORDER BY position ASC"
         case "practice":
             query = f"SELECT position as Position, number as Number, game_id as Driver, time as Time \
                     FROM timed_sessions LEFT JOIN drivers ON drivers.id = timed_sessions.driver_id \
-                    WHERE type = 2 AND race_id = {race_id} \
+                    WHERE type = 1 AND race_id = {race_id} \
                     ORDER BY position ASC"
         case "happy_hour":
             query = f"SELECT position as Position, number as Number, game_id as Driver, time as Time \

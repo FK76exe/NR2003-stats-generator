@@ -157,8 +157,14 @@ def add_weekend(series, season, request):
     race_track = request.form['track']
     race_file = request.files['file']
     weekend_dict = file_scraper.scrape_results(race_file.read().decode("windows-1252"))
-
-    drivers = [(row[3], ) for row in weekend_dict['Race']]
+    
+    # drivers - from all sessions (in case of a dns)
+    drivers = set()
+    if 'Practice' in weekend_dict.keys():
+        drivers = drivers | set((row[2], ) for row in weekend_dict['Practice'])
+    if 'Happy Hour' in weekend_dict.keys():
+        drivers = drivers | set((row[2], ) for row in weekend_dict['Happy Hour'])
+    drivers = drivers | set((row[2], ) for row in weekend_dict['Qualifying']) | set((row[3], ) for row in weekend_dict['Race'])
 
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
@@ -193,6 +199,7 @@ def add_weekend(series, season, request):
                     qualifying_list = [[race_id, 2, record[0], record[1], 
                                       driver_id_dict[record[2]], record[3]
                      ] for record in weekend_dict[session]]
+                    print(qualifying_list)
                     cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", qualifying_list)
                 case 'Happy Hour':
                     happy_hour_list = [[race_id,3, record[0], record[1], 
@@ -214,5 +221,5 @@ def get_tracks() -> tuple[tuple]:
     """Get id and name of all tracks registered in database."""
     with sqlite3.connect(DATABASE_NAME) as con:
         cursor = con.cursor()
-        cursor.execute("SELECT id, track_name FROM tracks")
+        cursor.execute("SELECT id, track_name FROM tracks ORDER BY track_name ASC")
         return cursor.fetchall()
