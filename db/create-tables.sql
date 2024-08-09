@@ -98,5 +98,5 @@ CREATE TABLE timed_sessions (
     position  INTEGER,
     number    INTEGER,
     driver_id INTEGER REFERENCES drivers (id) ON DELETE CASCADE,
-    time      INTEGER
+    time      VARCHAR
 );

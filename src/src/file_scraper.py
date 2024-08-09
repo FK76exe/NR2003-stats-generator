@@ -24,5 +24,14 @@ def scrape_results(html: str):
     # create dictionary {key=session, value=2d array of table}
     race_dict = {}
     for i, title in enumerate(titles):
-        race_dict.update({title: listmaker(tables[i])})
+        records = listmaker(tables[i])
+        race_dict.update({title: records[1:] if len(records) > 1 else []})
     return race_dict
+
+f = open("C:\\Papyrus\\NASCAR Racing 2003 Season\\exports_imports\\mm_cup_02_cali.html")
+#print(
+scrape_results(
+    f.read()
+    )
+  #  )# 
+f.close()
