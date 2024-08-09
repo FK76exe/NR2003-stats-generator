@@ -6,7 +6,7 @@ import re
 def listmaker(table):
     td = table.findAll("td")
     if "TIME" in td[3].text or "LAP" in td[0].text: # for practice, qualifying, happy hour, and penalties
-        return [[purify_text(td[y].text) for y in range(x, x+4)] for x in range(0, len(td)-4, 4)]      
+        return [[purify_text(td[y].text) for y in range(x, x+4)] for x in range(0, len(td), 4)]      
     else: # for race
         return [[purify_text(td[y].text) for y in range(x, x+9)] for x in range(0, len(td), 9)]
 
