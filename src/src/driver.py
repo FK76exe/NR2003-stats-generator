@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template
 import sqlite3
 
 driver_page = Blueprint("driver_page", __name__, url_prefix='/driver')
@@ -14,6 +14,16 @@ RIGHT JOIN ( \
     LEFT JOIN tracks ON races.track_id = tracks.id \
     RIGHT JOIN (SELECT season_num, series_id, id AS season_id FROM seasons) a ON races.season_id = a.season_id \
 ) b ON race_records.race_id = b.id"
+
+@driver_page.route("/")
+def get_drivers():
+    drivers = []
+    query = "SELECT game_id FROM drivers ORDER BY game_id ASC"
+    with sqlite3.connect(DATABASE_NAME) as con:
+        cursor = con.cursor()
+        cursor.execute(query)
+        drivers = cursor.fetchall()
+    return render_template("driver_list.html", drivers=[driver[0] for driver in drivers])
 
 @driver_page.route("/<game_id>/")
 def driver_overview(game_id):

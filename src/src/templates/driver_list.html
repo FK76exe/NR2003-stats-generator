@@ -1,0 +1,16 @@
+<html>
+    <head>
+        <title>
+            Drivers
+        </title>
+    </head>
+    <body>
+        <h1>
+            Drivers
+        </h1>
+        {% for driver in drivers %}
+            <a href="/driver/{{driver}}">{{driver}}</a>
+            <br>
+        {% endfor %}
+    </body>
+</html>
