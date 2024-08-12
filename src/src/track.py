@@ -1,5 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
-from markupsafe import escape
+from flask import Blueprint, render_template, request, redirect, url_for, abort
 import sqlite3
 
 track_page = Blueprint('track_page', __name__, url_prefix='/tracks')

@@ -48,10 +48,14 @@
             </table>
         {% endfor %}
 
-        {{ initial_deletion('WARNING: DELETING TRACK WILL REMOVE ALL RACES ASSOCIATED WITH IT FROM ALL SEASONS. THIS ACTION CANNOT BE UNDONE.', "Delete Track") }}
+        {% if records.keys() | length == 0 %}
+        {{ initial_deletion('WARNING: DELETION CANNOT BE UNDONE.', "Delete Track") }}
+        {% endif %}
     </body>
 
-    <script>
-        {{ confirm_deletion('ANOTHER WARNING: EVERY RACE RUN ON THIS TRACK WILL BE DELETED. THIS ACTION CANNOT BE UNDONE.')}}
-    </script>
+    {% if records.keys() | length == 0 %}
+        <script>
+            {{ confirm_deletion('ANOTHER WARNING: THIS ACTION CANNOT BE UNDONE.')}}
+        </script>
+    {% endif %}    
 </html>
