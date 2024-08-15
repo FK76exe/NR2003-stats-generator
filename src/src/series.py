@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, abort
 from markupsafe import escape
 import sqlite3
 import file_scraper as file_scraper
@@ -14,9 +14,12 @@ def main():
 
 def add_series(form):
     query = f"INSERT INTO series (name) VALUES ('{form['series_name']}')"
-    with sqlite3.connect(DATABASE_NAME) as con:
-        cursor = con.cursor()
-        cursor.execute(query)
+    try:
+        with sqlite3.connect(DATABASE_NAME) as con:
+            cursor = con.cursor()
+            cursor.execute(query)
+    except sqlite3.IntegrityError:
+        return abort(400, f"Please make sure the series name is unique and does not share its name with an existing series.")
     return list_all_series()
 
 def list_all_series():
@@ -129,14 +132,8 @@ def add_season(series):
             cursor.execute(query)
             con.commit()
         return get_schedule(series, season_num)
-    except sqlite3.IntegrityError as e:
-        return f"""
-    <html>
-        <b>ERROR</b>
-        {str(e)}
-        <a href="../">Go back to series page</a>
-    </html>
-    """
+    except sqlite3.IntegrityError:
+        return abort(400, "Please provide a number that is not currently in use.")
 
 @series_page.route("<series>/<season>/delete", methods = ['DELETE'])
 def delete_season(series, season):
