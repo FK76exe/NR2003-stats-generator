@@ -1,3 +1,4 @@
+{% from "macro.html" import initial_deletion, confirm_deletion with context %}
 <!DOCTYPE html>
 <head>
     <title>{{driver}}</title>
@@ -60,4 +61,13 @@
         <br>
         <br>
     {% endfor %}
+
+    {% if series_records.keys() | length == 0 %}
+        {{ initial_deletion('Note: Driver can only be re-added if they are a part of a submitted race.', 'Delete Driver') }}
+    {% endif %}
 </body>
+{% if series_records.keys() | length == 0 %}
+<script>
+    {{ confirm_deletion('Another Warning: This action cannot be undone.')}}
+</script>
+{% endif %}    
