@@ -31,7 +31,12 @@ def list_all_series():
         data = cursor.fetchall()
     return render_template("series_list.html", series_list = data)
 
-@series_page.route("/<series_id>/")
+@series_page.route("/<series_id>/", methods=['GET', 'POST'])
+def series_main(series_id):
+    if request.method == 'POST':
+        add_season(series_id, request)
+    return get_series_info(series_id)
+
 def get_series_info(series_id):
     """Get information about a series by `series_id`"""
     driver_desc = []
@@ -120,18 +125,17 @@ def delete_series(series):
         con.commit() # add this, so that everyone can see deletion
     return redirect(url_for('series_page.main'), code=302)
 
-@series_page.route("/<series>/add-season/", methods = ['POST'])
-def add_season(series):
+def add_season(series_id, request):
     """Add season to a given series."""
     season_num = request.form['season_num']
-    query = f"INSERT INTO seasons (series_id, season_num) VALUES ({series}, {season_num})"
+    query = f"INSERT INTO seasons (series_id, season_num) VALUES ({series_id}, {season_num})"
     
     try:
         with sqlite3.connect(DATABASE_NAME) as con:
             cursor = con.cursor()
             cursor.execute(query)
             con.commit()
-        return get_schedule(series, season_num)
+        return get_schedule(series_id, season_num)
     except sqlite3.IntegrityError:
         return abort(400, "Please provide a number that is not currently in use.")
 
