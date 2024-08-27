@@ -1,5 +1,5 @@
 {% macro navLink(name, endpoint) %}
-    <li class="nav-item">
+    <li>
         <a href="{{ endpoint }}">
             {{name}}
         </a>
@@ -30,7 +30,7 @@ function ConfirmDeletion() {
 {% endmacro %}
 
 {% macro weekend_navigation(id) %}
-<ul id="weekend-nav">
+<ul class="nav">
      <li>
         <a href="/race/{{id}}/">Race</a>
     </li>
@@ -45,6 +45,16 @@ function ConfirmDeletion() {
     </li>
     <li>
         <a href="/race/{{id}}/penalties/">Penalties</a>
+    </li>
+</ul>
+{% endmacro %}
+
+{% macro main_navigation() %}
+<ul class="nav">
+    <li>
+        <a href="/series/">Series</a>
+        <a href="/tracks/">Tracks</a>
+        <a href="/driver/">Drivers</a>
     </li>
 </ul>
 {% endmacro %}

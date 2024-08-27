@@ -1,4 +1,4 @@
-{% from "macro.html" import initial_deletion, confirm_deletion with context %}
+{% from "macro.html" import initial_deletion, confirm_deletion, main_navigation with context %}
 
 <html>
     <head>
@@ -8,6 +8,7 @@
         <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
     </head>
     <body>
+        {{main_navigation()}}
         <h1>{{ series }}</h1>
 
         <!-- Season List -->

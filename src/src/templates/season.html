@@ -1,14 +1,15 @@
-{% from "macro.html" import navLink, initial_deletion, confirm_deletion with context %}
+{% from "macro.html" import navLink, initial_deletion, confirm_deletion, main_navigation with context %}
 <html>
     <head>
         <title>
             {{ season }}
         </title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
     </head>
     <body>
         <!-- Navbar -->
-        <ul>
-            {{ navLink('Home', '/') }}
+        {{ main_navigation() }}
+        <ul class="nav">
             {{ navLink('Points', "./points") }}
         </ul>
 

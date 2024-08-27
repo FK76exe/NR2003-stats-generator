@@ -1,10 +1,14 @@
+{% from "macro.html" import main_navigation with context %}
+
 <html>
     <head>
         <title>
             Series
         </title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
     </head>
     <body>
+        {{ main_navigation() }}
         <h1>Series</h1>
         <ul>
             {% for record in series_list %}
