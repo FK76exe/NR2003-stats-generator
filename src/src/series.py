@@ -200,7 +200,6 @@ def add_weekend(series, season, request):
                     qualifying_list = [[race_id, 2, record[0], record[1], 
                                       driver_id_dict[record[2]], record[3]
                      ] for record in weekend_dict[session]]
-                    print(qualifying_list)
                     cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", qualifying_list)
                 case 'Happy Hour':
                     happy_hour_list = [[race_id,3, record[0], record[1], 
