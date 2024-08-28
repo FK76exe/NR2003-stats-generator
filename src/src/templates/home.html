@@ -1,21 +1,65 @@
 <html>
     <head>
-        Home
+        <title>
+            Home
+        </title>
     </head>
     <body>
-        <H1>NR2003 Stats Generator</H1>
+        <H1 style="text-align: center;">NR2003 Stats Generator</H1>
+        <div>
+            <table>
+                <tr>
+                    <td>
+                        <a href="/series/">
+                            Series
+                        </a>
+                    </td>
+                    <td>
+                        <a href="/tracks/">
+                            Tracks
+                        </a>
+                    </td>
+                    <td>
+                        <a href="/driver/">
+                            Drivers
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </div>
         
-        <ul>
-            {% for season in season_year_dict.keys() %}
-            <li>
-                {{season}}
-                {% for year in season_year_dict[season] %}
-                <ul>
-                    <a href="/points/{{season}}/{{year}}">{{year}}</a>
-                </ul>
-                {% endfor %}
-            </li>
-            {% endfor %}
-        </ul>
     </body>
+    <style>
+        body {
+            height: 95vh;
+        }
+        h1 {
+            text-align: center;
+            font-size: 50px;
+        }
+        div {
+            width: 80%;
+            top: 15%;
+            position: relative;
+            align-content: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        table {
+            text-align: center;
+            left: 50%;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        td {
+            border-style: outset;
+            padding: 50px;
+            margin-left: 10px;
+        }
+        td > a {
+            padding: 50px;
+        }
+        </style>
 </html>

@@ -1,5 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
-from markupsafe import escape
+from flask import Blueprint, render_template, request, redirect, url_for, abort
 import sqlite3
 
 track_page = Blueprint('track_page', __name__, url_prefix='/tracks')
@@ -14,7 +13,7 @@ def track_main():
     return get_tracks(message)
 
 def get_tracks(message):
-    query = "SELECT tracks.id, track_name, length_miles, uses_plate, track_type.type FROM tracks LEFT JOIN track_type on tracks.type = track_type.id WHERE length_miles > 0 ORDER BY track_name"
+    query = "SELECT tracks.id as ID, track_name as Name, length_miles as [Length (miles)], uses_plate as [Plate?], track_type.type AS Type FROM tracks LEFT JOIN track_type on tracks.type = track_type.id WHERE length_miles > 0 ORDER BY track_name"
     track_data = []
     track_headers = ()
     with sqlite3.connect(DATABASE_NAME) as con:

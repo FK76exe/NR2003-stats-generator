@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, abort
 from markupsafe import escape
 import sqlite3
 import file_scraper as file_scraper
@@ -14,9 +14,12 @@ def main():
 
 def add_series(form):
     query = f"INSERT INTO series (name) VALUES ('{form['series_name']}')"
-    with sqlite3.connect(DATABASE_NAME) as con:
-        cursor = con.cursor()
-        cursor.execute(query)
+    try:
+        with sqlite3.connect(DATABASE_NAME) as con:
+            cursor = con.cursor()
+            cursor.execute(query)
+    except sqlite3.IntegrityError:
+        return abort(400, f"Please make sure the series name is unique and does not share its name with an existing series.")
     return list_all_series()
 
 def list_all_series():
@@ -28,7 +31,12 @@ def list_all_series():
         data = cursor.fetchall()
     return render_template("series_list.html", series_list = data)
 
-@series_page.route("/<series_id>/")
+@series_page.route("/<series_id>/", methods=['GET', 'POST'])
+def series_main(series_id):
+    if request.method == 'POST':
+        add_season(series_id, request)
+    return get_series_info(series_id)
+
 def get_series_info(series_id):
     """Get information about a series by `series_id`"""
     driver_desc = []
@@ -117,26 +125,19 @@ def delete_series(series):
         con.commit() # add this, so that everyone can see deletion
     return redirect(url_for('series_page.main'), code=302)
 
-@series_page.route("/<series>/add-season/", methods = ['POST'])
-def add_season(series):
+def add_season(series_id, request):
     """Add season to a given series."""
     season_num = request.form['season_num']
-    query = f"INSERT INTO seasons (series_id, season_num) VALUES ({series}, {season_num})"
+    query = f"INSERT INTO seasons (series_id, season_num) VALUES ({series_id}, {season_num})"
     
     try:
         with sqlite3.connect(DATABASE_NAME) as con:
             cursor = con.cursor()
             cursor.execute(query)
             con.commit()
-        return get_schedule(series, season_num)
-    except sqlite3.IntegrityError as e:
-        return f"""
-    <html>
-        <b>ERROR</b>
-        {str(e)}
-        <a href="../">Go back to series page</a>
-    </html>
-    """
+        return get_schedule(series_id, season_num)
+    except sqlite3.IntegrityError:
+        return abort(400, "Please provide a number that is not currently in use.")
 
 @series_page.route("<series>/<season>/delete", methods = ['DELETE'])
 def delete_season(series, season):
@@ -199,7 +200,6 @@ def add_weekend(series, season, request):
                     qualifying_list = [[race_id, 2, record[0], record[1], 
                                       driver_id_dict[record[2]], record[3]
                      ] for record in weekend_dict[session]]
-                    print(qualifying_list)
                     cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", qualifying_list)
                 case 'Happy Hour':
                     happy_hour_list = [[race_id,3, record[0], record[1], 

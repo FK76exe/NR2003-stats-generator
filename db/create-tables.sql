@@ -36,8 +36,7 @@ CREATE TABLE races (
     id        INTEGER PRIMARY KEY
                       UNIQUE
                       NOT NULL,
-    race_file INTEGER NOT NULL
-                      UNIQUE,
+    race_file INTEGER NOT NULL,
     track_id          REFERENCES tracks (id) ON DELETE CASCADE
                       NOT NULL,
     name,

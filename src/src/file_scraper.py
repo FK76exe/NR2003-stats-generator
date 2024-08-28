@@ -19,10 +19,12 @@ def scrape_results(html: str):
 
     # substring to find session headers
     h3_pattern = re.compile("Session:\s([A-Z][a-z]*)")
-    titles = [purify_text(title.text).replace("Session: ", "") for title in html_soup.findAll("h3", string=h3_pattern)] + ['Penalties']
+    titles = [purify_text(title.text).replace("Session: ", "") for title in html_soup.findAll("h3", string=h3_pattern)]
 
     # create dictionary {key=session, value=2d array of table}
     race_dict = {}
+    if len(titles) < len(tables):
+        titles.append('Penalties')
     for i, title in enumerate(titles):
         records = listmaker(tables[i])
         race_dict.update({title: records[1:] if len(records) > 1 else []})

@@ -1,4 +1,4 @@
-{% from "macro.html" import initial_deletion, confirm_deletion with context %}
+{% from "macro.html" import initial_deletion, confirm_deletion, main_navigation with context %}
 
 <html>
     <head>
@@ -8,6 +8,7 @@
         <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
     </head>
     <body>
+        {{main_navigation()}}
         <h1>{{ series }}</h1>
 
         <!-- Season List -->
@@ -24,7 +25,7 @@
                 {% for stat in season %}
                 <td>
                     {% if loop.index == 1 %}
-                        <a href="/series/{{id}}/{{stat}}/points">{{stat}}</a>
+                        <a href="/series/{{id}}/{{stat}}/">{{stat}}</a>
                     {% else %}
                         {{stat}}
                     {% endif %}
@@ -64,7 +65,7 @@
 
         <hr>
         Add New Season. Note that it must have a unique number.
-        <form action="./add-season/" method="post">
+        <form method="post">
             <input type="number" step="1" name="season_num" required>
             <br>
             <input type="submit" value="Submit">

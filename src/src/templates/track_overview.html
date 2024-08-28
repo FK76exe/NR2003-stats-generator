@@ -1,12 +1,14 @@
-{% from "macro.html" import initial_deletion, confirm_deletion with context %}
+{% from "macro.html" import initial_deletion, confirm_deletion, main_navigation with context %}
 
 <html>
     <head>
         <title>
             {{track_info[0]}}
         </title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
     </head>
     <body>
+        {{main_navigation()}}
         <h1>{{track_info[0]}}</h1>
         Track Length (miles): {{track_info[1]}} <br>
         Plate Track? {{'Yes' if track_info[2] else 'No'}} <br>
@@ -48,10 +50,14 @@
             </table>
         {% endfor %}
 
-        {{ initial_deletion('WARNING: DELETING TRACK WILL REMOVE ALL RACES ASSOCIATED WITH IT FROM ALL SEASONS. THIS ACTION CANNOT BE UNDONE.', "Delete Track") }}
+        {% if records.keys() | length == 0 %}
+        {{ initial_deletion('WARNING: DELETION CANNOT BE UNDONE.', "Delete Track") }}
+        {% endif %}
     </body>
 
-    <script>
-        {{ confirm_deletion('ANOTHER WARNING: EVERY RACE RUN ON THIS TRACK WILL BE DELETED. THIS ACTION CANNOT BE UNDONE.')}}
-    </script>
+    {% if records.keys() | length == 0 %}
+        <script>
+            {{ confirm_deletion('ANOTHER WARNING: THIS ACTION CANNOT BE UNDONE.')}}
+        </script>
+    {% endif %}    
 </html>

@@ -1,4 +1,4 @@
-{% from "macro.html" import weekend_navigation with context %}
+{% from "macro.html" import weekend_navigation, main_navigation with context %}
 <html>
     <head>
         <title>
@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
     </head>
     <body>
+        {{ main_navigation() }}
         {{ weekend_navigation(id) }}
 
         <h1>

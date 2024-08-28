@@ -1,14 +1,16 @@
-{% from "macro.html" import navLink with context %}
+{% from "macro.html" import navLink, main_navigation with context %}
 <!DOCTYPE html>
 <head>
     <title>Season Standings</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
 </head>
 <body>
     <!-- Navbar -->
-    <ul>
-        {{ navLink('Home', '/') }}
+    {{ main_navigation() }}
+    <ul class="nav">
         {{ navLink('Schedule',"../") }}
     </ul>
+    
 
     <table>
         <tr>
