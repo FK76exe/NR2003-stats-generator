@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS track_type (
     type STRING  UNIQUE
 );
 
-INSERT INTO track_type (type) VALUES ('STREET COURSE'), ('ROAD COURSE'), ('DIRT OVAL'), ('PAVED OVAL');
+INSERT INTO OR IGNORE track_type (type) VALUES ('STREET COURSE'), ('ROAD COURSE'), ('DIRT OVAL'), ('PAVED OVAL');
 
 -- tracks
 CREATE TABLE IF NOT EXISTS tracks (
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS timed_session_type (
     session         UNIQUE
 );
 
-INSERT INTO timed_session_type (session) VALUES ('Practice'), ('Qualifying'), ('Happy Hour');
+INSERT OR IGNORE INTO timed_session_type (session) VALUES ('Practice'), ('Qualifying'), ('Happy Hour');
 
 -- timed sessions
 CREATE TABLE IF NOT EXISTS timed_sessions (
