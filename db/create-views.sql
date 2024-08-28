@@ -1,5 +1,5 @@
 -- points view
-CREATE VIEW points_view AS
+CREATE VIEW IF NOT EXISTS points_view AS
     SELECT seasons.season_num AS year,
            series.name AS series,
            game_id,
@@ -205,7 +205,7 @@ CREATE VIEW points_view AS
      ORDER BY points DESC;
 
 -- track overview
-CREATE VIEW track_race_overview AS
+CREATE VIEW IF NOT EXISTS track_race_overview AS
     SELECT tracks.id,
            series_id,
            b.name AS series,
