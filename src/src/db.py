@@ -5,7 +5,7 @@
 
 import sqlite3
 import configparser
-import os
+from enum import Enum
 
 config = configparser.ConfigParser()
 config.read('config.ini')
