@@ -1,12 +1,12 @@
 from flask import Blueprint, render_template, redirect, abort
 import sqlite3
+from db import DB_PATH
 
 race_page = Blueprint("race_page", __name__, url_prefix="/race")
-DATABASE_NAME = "../../db/nr-stats-gen.db"
 
 @race_page.route("/")
 def race_main():
-    return "<h1>Hi</h1>"
+    return "To find a race, go to a season page and click on the race you wish to view."
 
 @race_page.route("/<race_id>/")
 def get_race_records(race_id):
@@ -16,7 +16,7 @@ def get_race_records(race_id):
     race_info = {'name': None, 'track_name': None, 'track_length': None, 'track_type': None, 'track_plate': None, 'series_id': None, 'series_name': None, 'season': None}
 
     # gonna need race records and race info (name, track, series, season)
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         i = cursor.execute(f"""SELECT finish_position AS finish, start_position AS start, CASE WHEN car_number > 1999 THEN '0' || (car_number-2000) ELSE car_number END AS number, game_id AS driver, interval, laps, led, points, finish_status AS status
                                 FROM race_records
@@ -78,7 +78,7 @@ def get_nonrace_records(race_id, filter):
             return abort(404, "Not a valid session.")
 
     headers = []
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         data = cursor.execute(query).fetchall()
         headers = [j[0] for j in cursor.description]
@@ -102,7 +102,7 @@ def delete_race(race_id):
     delete_query = f"DELETE FROM races WHERE id = {race_id}"
     season_series_query = f"SELECT series_id, season_num FROM races LEFT JOIN seasons ON seasons.id = races.season_id WHERE races.id={race_id}"
 
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         series, season = cursor.execute(season_series_query).fetchone()
         cursor.execute(pragma_query)

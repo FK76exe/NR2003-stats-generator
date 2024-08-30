@@ -12,8 +12,6 @@ app.register_blueprint(track_page)
 app.register_blueprint(driver_page)
 app.register_blueprint(race_page)
 
-DATABASE_NAME = "../../db/nr-stats-gen.db"
-
 @app.route("/")
 def home():
     return render_template('home.html')

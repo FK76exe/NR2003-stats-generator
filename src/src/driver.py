@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for
+from db import DB_PATH
 import sqlite3
 
 driver_page = Blueprint("driver_page", __name__, url_prefix='/driver')
-DATABASE_NAME = "../../db/nr-stats-gen.db"
 # use this as a base, then add where clauses onto it in practice
 GET_DRIVER_RESULTS_QUERY = "race_name as Race, race_id as Race_ID, track_name as Track, finish_position as Finish, start_position as Start, \
 car_number as Number, interval as Interval, laps as Laps, led as Led, points as Points, finish_status as Status \
@@ -19,7 +19,7 @@ RIGHT JOIN ( \
 def get_drivers():
     drivers = []
     query = "SELECT game_id FROM drivers ORDER BY game_id ASC"
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
         drivers = cursor.fetchall()
@@ -35,7 +35,7 @@ FROM (SELECT *,RANK() OVER(PARTITION BY series, year ORDER BY points DESC) as RA
 LEFT JOIN series ON series.name = a.series \
 where game_id = '{game_id}' \
 ORDER BY YEAR ASC"
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
         header = [col[0] for col in cursor.description]
@@ -69,7 +69,7 @@ def driver_results_by_series(game_id: str, series_id: int, filter:str):
     
     query = f"SELECT season_num as Year, {GET_DRIVER_RESULTS_QUERY} WHERE game_id = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY season_num ASC, race_id ASC"
     
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
         data = cursor.fetchall()
@@ -94,7 +94,7 @@ def driver_results_by_season(game_id: str, series_id: int, season_num: int):
 
     query = f"SELECT {GET_DRIVER_RESULTS_QUERY} WHERE game_id = '{game_id}' AND series_id = {series_id} AND season_num = {season_num}"
 
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
 
         cursor.execute(query)
@@ -121,7 +121,7 @@ def delete_driver(game_id: str):
     # each query string can only have one statement
     pragma_query = "PRAGMA foreign_keys = ON"
     delete_query = f"DELETE FROM drivers WHERE game_id = '{game_id}';"
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         try:
             cursor = con.cursor()
             cursor.execute(pragma_query)
