@@ -2,10 +2,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, abort
 from markupsafe import escape
 import sqlite3
 import file_scraper as file_scraper
+from db import DB_PATH
 
 series_page = Blueprint('series_page', __name__, url_prefix='/series')
-DATABASE_NAME = "../../db/nr-stats-gen.db"
-
 @series_page.route("/", methods=['GET', 'POST'])
 def main():
     if request.method == 'POST':
@@ -15,7 +14,7 @@ def main():
 def add_series(form):
     query = f"INSERT INTO series (name) VALUES ('{form['series_name']}')"
     try:
-        with sqlite3.connect(DATABASE_NAME) as con:
+        with sqlite3.connect(DB_PATH) as con:
             cursor = con.cursor()
             cursor.execute(query)
     except sqlite3.IntegrityError:
@@ -25,7 +24,7 @@ def add_series(form):
 def list_all_series():
     """List all series available"""
     data = []
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(f"SELECT * FROM series")
         data = cursor.fetchall()
@@ -44,7 +43,7 @@ def get_series_info(series_id):
     season_desc = ['Year', 'Races', 'Points Leader']
     season_stats = ()
     series_name = None
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(f"SELECT COUNT(*) as Seasons, game_id as Driver, sum(RACES) as Races, sum(WIN) as Wins, sum([TOP 5]) as [Top 5s], sum([TOP 10]) as [Top 10s], \
 sum(POLE) as Poles, sum(LAPS) as Laps, sum(LED) as Led, sum(DNF) as DNFs, sum(LLF) as LLFs, sum(POINTS) as Points \
@@ -85,7 +84,7 @@ def season_main(series, season):
         return get_schedule(series, season)
 
 def get_schedule(series, season):
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
 
         season_id_query = f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}"
@@ -103,7 +102,7 @@ def get_schedule(series, season):
 def show_series(series, season):
     data = []
 
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         series_name = cursor.execute(f"SELECT name FROM series WHERE id = {series}").fetchall()[0][0]
 
@@ -118,7 +117,7 @@ def delete_series(series):
     """Delete series based on ID"""
     pragma_query = "PRAGMA foreign_keys = ON;"
     delete_query = f"DELETE FROM series WHERE id = {series}"
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(pragma_query)
         cursor.execute(delete_query)
@@ -131,7 +130,7 @@ def add_season(series_id, request):
     query = f"INSERT INTO seasons (series_id, season_num) VALUES ({series_id}, {season_num})"
     
     try:
-        with sqlite3.connect(DATABASE_NAME) as con:
+        with sqlite3.connect(DB_PATH) as con:
             cursor = con.cursor()
             cursor.execute(query)
             con.commit()
@@ -144,7 +143,7 @@ def delete_season(series, season):
     """Delete season of a series"""
     pragma_query = "PRAGMA foreign_keys = ON;"
     delete_query = f"DELETE FROM seasons WHERE series_id={series} AND season_num={season}"
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(pragma_query)
         cursor.execute(delete_query)
@@ -167,7 +166,7 @@ def add_weekend(series, season, request):
         drivers = drivers | set((row[2], ) for row in weekend_dict['Happy Hour'])
     drivers = drivers | set((row[2], ) for row in weekend_dict['Qualifying']) | set((row[3], ) for row in weekend_dict['Race'])
 
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
 
         # get season id
@@ -219,7 +218,7 @@ def add_weekend(series, season, request):
 
 def get_tracks() -> tuple[tuple]:
     """Get id and name of all tracks registered in database."""
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute("SELECT id, track_name FROM tracks ORDER BY track_name ASC")
         return cursor.fetchall()

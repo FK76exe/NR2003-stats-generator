@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, abort
 import sqlite3
+from db import DB_PATH
 
 track_page = Blueprint('track_page', __name__, url_prefix='/tracks')
-DATABASE_NAME = "../../db/nr-stats-gen.db"
 
 @track_page.route("/", methods=['GET', 'POST'])
 def track_main():
@@ -16,7 +16,7 @@ def get_tracks(message):
     query = "SELECT tracks.id as ID, track_name as Name, length_miles as [Length (miles)], uses_plate as [Plate?], track_type.type AS Type FROM tracks LEFT JOIN track_type on tracks.type = track_type.id WHERE length_miles > 0 ORDER BY track_name"
     track_data = []
     track_headers = ()
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
         track_data = cursor.fetchall()
@@ -26,7 +26,7 @@ def get_tracks(message):
 def add_track(form):
     query = f"INSERT INTO tracks (track_name, length_miles, uses_plate, type) VALUES('{form['track_name']}', {form['track_length']}, {1 if 'uses_plate' in form.keys() else 0}, {form['track_type']})"
 
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         try:
             cursor = con.cursor()
             cursor.execute(query)
@@ -39,7 +39,7 @@ def delete_track(id):
     # each query string can only have one statement
     pragma_query = "PRAGMA foreign_keys = ON"
     delete_query = f"DELETE FROM tracks WHERE id = {id};"
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         try:
             cursor = con.cursor()
             cursor.execute(pragma_query)
@@ -55,7 +55,7 @@ def get_track_info(id):
     track_query = f"SELECT track_name, length_miles, uses_plate, track_type.type FROM tracks LEFT JOIN track_type on tracks.type = track_type.id WHERE length_miles > 0 AND tracks.id = {id}"
     record_query = f"SELECT series_id, series, season_num, name, laps, miles, pole_sitter, winner, speed FROM track_race_overview WHERE id = {id}"
     
-    with sqlite3.connect(DATABASE_NAME) as con:
+    with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(track_query)
         track_info = cursor.fetchall()[0]
