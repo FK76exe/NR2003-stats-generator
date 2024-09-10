@@ -8,11 +8,11 @@ GET_DRIVER_RESULTS_QUERY = "race_name as Race, race_id as Race_ID, track_name as
 car_number as Number, interval as Interval, laps as Laps, led as Led, points as Points, finish_status as Status \
 FROM race_records \
 LEFT JOIN drivers ON driver_id = drivers.id \
-RIGHT JOIN ( \
+LEFT JOIN ( \
     SELECT season_num, series_id,races.id, IFNULL(name, track_name) as race_name, track_name \
     FROM races \
     LEFT JOIN tracks ON races.track_id = tracks.id \
-    RIGHT JOIN (SELECT season_num, series_id, id AS season_id FROM seasons) a ON races.season_id = a.season_id \
+    LEFT JOIN (SELECT season_num, series_id, id AS season_id FROM seasons) a ON races.season_id = a.season_id \
 ) b ON race_records.race_id = b.id"
 
 @driver_page.route("/")
