@@ -1,10 +1,10 @@
 from flask import Flask, render_template
 import file_scraper as file_scraper
-import sqlite3
 from series import series_page
 from track import track_page
 from driver import driver_page
 from race import race_page
+import webbrowser
 
 app = Flask(__name__)
 app.register_blueprint(series_page)
@@ -15,3 +15,7 @@ app.register_blueprint(race_page)
 @app.route("/")
 def home():
     return render_template('home.html')
+
+if __name__ == "__main__":
+    webbrowser.open("http://127.0.0.1:5000", 2)
+    app.run()
