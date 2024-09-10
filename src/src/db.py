@@ -1,12 +1,8 @@
-# TODO function for retrieving database
-# TODO function for filling up database
-
 # run without func -> only get config info once
 
 import sqlite3
 import configparser
-from os import path 
-import sys
+from os import path
 
 BASE_PATH = path.dirname(__file__)
 
