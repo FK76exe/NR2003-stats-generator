@@ -4,3 +4,5 @@ env
 *.pyc
 notes.*
 *.org
+src/build/**
+src/dist/**
