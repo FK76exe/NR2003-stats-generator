@@ -7,7 +7,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('../db/*.sql', 'db'),
+        ('src/db/*.sql', 'db'),
         ('src/templates','templates'),
         ('src/static/styles', 'static/styles')
     ],
