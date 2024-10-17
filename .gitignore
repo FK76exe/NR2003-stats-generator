@@ -6,3 +6,4 @@ notes.*
 *.org
 src/build/**
 src/dist/**
+release/**
