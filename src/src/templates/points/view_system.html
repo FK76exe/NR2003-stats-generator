@@ -1,0 +1,63 @@
+{% from "macro.html" import main_navigation %}
+
+<h1>{{name}}</h1>
+
+<form method="put" id="points_form">
+    <!-- name of system -->
+    <input name="name" required value="{{name}}"> 
+</form>
+
+<!-- add position elements plus bonus -->
+<h2>Position Points</h2>
+<table>
+    <tr>
+        <td>
+            Position
+        </td>
+        <td>
+            Points
+        </td>
+    </tr>
+    {% for row in standard_points %}
+    <tr>
+        <td>
+            {{row[0]}}
+        </td>
+        <td>
+            <input type="number" size="4" value="{{row[1]}}" name="{{row[0]}}" form="points_form" required>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Bonus Points</h2>
+<table>
+    <tr>
+        <td>
+            Pole
+        </td>
+        <td>
+            Led 1 lap
+        </td>
+        <td>
+            Led most laps
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input type="number" size="4" value="{{bonus_points[0][1]}}" name="P" form="points_form" required>
+        </td>
+        <td>
+            <input type="number" size="4" value="{{bonus_points[1][1]}}" name="LL" form="points_form" required>
+        </td>
+        <td>
+            <input type="number" size="4" value="{{bonus_points[2][1]}}" name="MLL" form="points_form" required>
+        </td>
+    </tr>
+</table>
+
+<br>
+<button form="points_form">Save</button>
+
+<br>
+<b>Note:</b> if there is a tie for who leads the most laps, default tiebreaker is finishing position
