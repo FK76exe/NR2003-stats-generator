@@ -1,4 +1,4 @@
-{% from "macro.html" import main_navigation %}
+{% from "macro.html" import main_navigation, initial_deletion, confirm_deletion %}
 
 <h1>{{name}}</h1>
 
@@ -62,3 +62,10 @@
 
 <br>
 <b>Note:</b> if there is a tie for who leads the most laps, default tiebreaker is finishing position
+
+<br>
+{{ initial_deletion("This action is irreversible", "Delete System") }}
+
+<script>
+    {{ confirm_deletion('Another Warning: This action cannot be undone.')}}
+</script>

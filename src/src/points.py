@@ -4,6 +4,10 @@ from db import DB_PATH
 
 points_page = Blueprint("points_page", __name__, url_prefix="/points")
 
+@points_page.route('/')
+def main():
+    return "placeholder"
+
 @points_page.route("/add/", methods=['GET', 'POST'])
 def add_system():
     system_id = None
@@ -76,3 +80,13 @@ def update_system(id: int, form):
         con.commit()
         cursor.close()
     return redirect(url_for('points_page.view_system', id=id)) # 302 interpreted as GET request, no need to specify method
+
+@points_page.route("/<id>/delete/", methods=['DELETE'])
+def delete_system(id: int):
+    pragma_query = "PRAGMA foreign_keys = ON;" # enforce foreign key constraints (otherwise it doesn't work)
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+        cursor.execute(pragma_query)
+        cursor.execute(f"DELETE FROM point_systems WHERE id={id}")
+        cursor.close()
+    return redirect(url_for('points_page.main'))
