@@ -33,10 +33,13 @@ def add_system():
         cursor.executemany(f"INSERT INTO bonus_points VALUES (?, ?, ?)", bonus_points)
         con.commit()
         cursor.close()
-    return redirect(url_for('points_page.view_system',id=system_id))
+    return redirect(url_for('points_page.view_system', id=system_id))
 
-@points_page.route("/<id>/", methods=['GET'])
+@points_page.route("/<id>/", methods=['GET', 'POST'])
 def view_system(id: int):
+    if request.method == 'POST':
+        # PUT is invalid for forms
+        return update_system(id, request.form)
     standard_points, bonus_points = [], []
     name = ''
     with sqlite3.connect(DB_PATH) as con:
@@ -53,3 +56,23 @@ def view_system(id: int):
 
         cursor.close()
     return render_template("./points/view_system.html", standard_points=standard_points, bonus_points=bonus_points, name=name)
+
+def update_system(id: int, form):
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+
+        cursor.execute(f"UPDATE point_systems SET name = '{form['name']}' WHERE id = {id}")
+
+        updated_finish_points = [[int(form[str(i)]), i] for i in range(1,44)]
+        cursor.executemany(f"UPDATE point_system_scores SET points = ? WHERE system_id = {id} AND position = ?", updated_finish_points)
+
+        updated_bonus_points = [
+            (int(form['P']), 1),
+            (int(form['LL']), 2),
+            (int(form['MLL']), 3)
+        ]
+        cursor.executemany(f"UPDATE bonus_points SET points = ? WHERE system_id = {id} AND bonus_condition = ?", updated_bonus_points)
+
+        con.commit()
+        cursor.close()
+    return redirect(url_for('points_page.view_system', id=id)) # 302 interpreted as GET request, no need to specify method
