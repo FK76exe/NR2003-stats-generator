@@ -6,7 +6,11 @@ points_page = Blueprint("points_page", __name__, url_prefix="/points")
 
 @points_page.route('/')
 def main():
-    return "placeholder"
+    systems = []
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+        systems = cursor.execute("SELECT id, name FROM point_systems").fetchall()
+    return render_template('./points/overview.html', systems=systems)
 
 @points_page.route("/add/", methods=['GET', 'POST'])
 def add_system():
