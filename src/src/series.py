@@ -43,6 +43,7 @@ def get_series_info(series_id):
     season_desc = ['Year', 'Races', 'Points Leader']
     season_stats = ()
     series_name = None
+    systems = []
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(f"SELECT COUNT(*) as Seasons, game_id as Driver, sum(RACES) as Races, sum(WIN) as Wins, sum([TOP 5]) as [Top 5s], sum([TOP 10]) as [Top 10s], \
@@ -70,14 +71,15 @@ GROUP BY season_num
         season_stats = cursor.fetchall()
 
         series_name = cursor.execute(f"SELECT name FROM series WHERE id = {series_id}").fetchall()[0][0]
+        systems = cursor.execute("SELECT id, name FROM point_systems").fetchall()
     
     return render_template('series.html', driver_headers = driver_desc, driver_stats = driver_stats,
-                           season_headers = season_desc, season_stats = season_stats, series = series_name, id = series_id)
+                           season_headers = season_desc, season_stats = season_stats, series = series_name, id = series_id, systems=systems)
 
 @series_page.route("/<series>/<season>/", methods=['GET', 'POST'])
 def season_main(series, season):
     """return list of races, with track and winner for a given season."""
-    
+
     if request.method == 'POST':
         return add_weekend(series, season, request)
     else:
@@ -126,8 +128,8 @@ def delete_series(series):
 
 def add_season(series_id, request):
     """Add season to a given series."""
-    season_num = request.form['season_num']
-    query = f"INSERT INTO seasons (series_id, season_num) VALUES ({series_id}, {season_num})"
+    season_num, points_system = request.form['season_num'], request.form['system']
+    query = f"INSERT INTO seasons (series_id, season_num, points_system) VALUES ({series_id}, {season_num}, {points_system})"
     
     try:
         with sqlite3.connect(DB_PATH) as con:
@@ -156,6 +158,7 @@ def add_weekend(series, season, request):
     race_name = request.form['name']
     race_track = request.form['track']
     race_file = request.files['file']
+
     weekend_dict = file_scraper.scrape_results(race_file.read().decode("windows-1252"))
     
     # drivers - from all sessions (in case of a dns)
@@ -192,18 +195,18 @@ def add_weekend(series, season, request):
             match session:
                 case 'Practice':
                     practice_list = [[race_id, 1, record[0], record[1], 
-                                      driver_id_dict[record[2]], record[3]
-                     ] for record in weekend_dict[session]]
+                                    driver_id_dict[record[2]], record[3]
+                    ] for record in weekend_dict[session]]
                     cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", practice_list) 
                 case 'Qualifying':
                     qualifying_list = [[race_id, 2, record[0], record[1], 
-                                      driver_id_dict[record[2]], record[3]
-                     ] for record in weekend_dict[session]]
+                                    driver_id_dict[record[2]], record[3]
+                    ] for record in weekend_dict[session]]
                     cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", qualifying_list)
                 case 'Happy Hour':
                     happy_hour_list = [[race_id,3, record[0], record[1], 
-                                      driver_id_dict[record[2]], record[3]
-                     ] for record in weekend_dict[session]]
+                                    driver_id_dict[record[2]], record[3]
+                    ] for record in weekend_dict[session]]
                     cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", happy_hour_list)   
                 case 'Race':
                     race_list = [[race_id] + record[:3] + [driver_id_dict[record[3]]] + [str(record[4])] + record[5:8] + [str(record[8])] for record in weekend_dict[session]] 

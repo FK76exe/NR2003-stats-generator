@@ -66,8 +66,15 @@
         <hr>
         Add New Season. Note that it must have a unique number.
         <form method="post">
+            <label for="season_num">Enter Season Number. It must not be used by another season in the same series.</label>
             <input type="number" step="1" name="season_num" required>
             <br>
+            <label for="system">Select a points system from the dropdown:</label>
+            <select name="system" required>
+                {% for system in systems %}
+                <option value="{{system[0]}}">{{system[1]}}</option>
+                {% endfor %}
+            </select>
             <input type="submit" value="Submit">
         </form>
 

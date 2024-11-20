@@ -26,3 +26,7 @@ CREATE TABLE IF NOT EXISTS bonus_points (
     points          INTEGER DEFAULT 0,
     PRIMARY KEY (system_id, bonus_condition)
 );
+
+-- ALTER TABLE seasons ADD COLUMN points_system id INTEGER REFERENCES points_systems(id); -- no assigned points system leads to null
+
+-- TODO add versions schema: https://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
