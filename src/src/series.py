@@ -152,6 +152,22 @@ def delete_season(series, season):
         con.commit() # add this, so that everyone can see deletion
     return redirect("../", code=302)
 
+@series_page.route("<series>/<season>/change_points", methods = ['GET', 'POST'])
+def update_points_system(series, season):
+    if request.method == 'GET':
+        systems = []
+        with sqlite3.connect(DB_PATH) as con:
+            systems = con.cursor().execute("SELECT id, name FROM point_systems").fetchall()
+        return render_template('./season/change_points.html', systems=systems)
+    else:
+        with sqlite3.connect(DB_PATH) as con:
+            cursor = con.cursor()
+            season_id = cursor.execute(f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}").fetchall()[0][0]
+            cursor.execute(f"UPDATE seasons SET points_system_id = {int(request.form['chosen_system'])} WHERE id = {season_id}")
+            con.commit()
+        return redirect(url_for('series_page.show_series', series=series, season=season))
+        
+
 def add_weekend(series, season, request):
     """Add a weekend (HTML file) to a given season"""
 

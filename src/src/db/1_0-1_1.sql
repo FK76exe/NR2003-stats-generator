@@ -87,7 +87,7 @@ CREATE VIEW IF NOT EXISTS points_per_race AS
            )
            most_led ON most_led.system_id = seasons.points_system_id;
 
--- ALTER TABLE seasons ADD COLUMN points_system id INTEGER REFERENCES points_systems(id); -- no assigned points system leads to null
+-- ALTER TABLE seasons ADD COLUMN points_system_id INTEGER REFERENCES points_systems(id); -- no assigned points system leads to null
 
 -- safe to drop a view since its just an aggregator
 DROP VIEW points_view;

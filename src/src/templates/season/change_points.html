@@ -1,0 +1,19 @@
+{% from "macro.html" import navLink, main_navigation with context %}
+<html>
+    <head>
+        Update Points System
+    </head>
+    <body>
+        <h1>Update Points System</h1>
+        <form method="post" id="updated_points">
+            <label>Select Desired Points System</label>
+            <select name="chosen_system">
+                {% for system in systems %}
+                    <option value="{{system[0]}}">{{system[1]}}</option>
+                {% endfor %}
+            </select>
+        </form>
+        <button form="updated_points">Save</button>
+        
+    </body>
+</html>
