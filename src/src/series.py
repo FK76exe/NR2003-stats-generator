@@ -98,7 +98,7 @@ def get_schedule(series, season):
         series_query = f"SELECT name FROM seasons LEFT JOIN series ON seasons.series_id = series.id WHERE seasons.id={season_id}"
         series_name = cursor.execute(series_query).fetchall()
 
-    return render_template('season.html', schedule=schedule, season=season, series_name=series_name[0][0], series=series, tracks=get_tracks())
+    return render_template('./season/season.html', schedule=schedule, season=season, series_name=series_name[0][0], series=series, tracks=get_tracks())
 
 @series_page.route("/<series>/<season>/points/")
 def show_series(series, season):
@@ -112,7 +112,7 @@ def show_series(series, season):
         cursor.execute(query)
         header = ["RANK"] + [col[0] for col in cursor.description]
         data = cursor.fetchall()
-    return render_template('season_table.html',header=header, records=data, series=series, season=season)
+    return render_template('./season/season_table.html',header=header, records=data, series=series, season=season)
 
 @series_page.route("/<series>/delete/", methods = ['DELETE'])
 def delete_series(series):
