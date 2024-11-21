@@ -165,6 +165,57 @@ CREATE VIEW IF NOT EXISTS points_view AS
     GROUP BY season_id, driver_id
     ) m ON drivers.id = m.driver_id AND seasons.id = m.season_id
 
-    ORDER BY points DESC
+    ORDER BY points DESC;
 
 -- TODO add versions schema: https://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
+
+DROP VIEW driver_race_records;
+
+CREATE VIEW driver_race_records AS
+    SELECT season_num AS Year,
+           race_name AS Race,
+           race_records.race_id AS Race_ID,
+           track_name AS Track,
+           race_records.driver_id AS Driver_ID,
+           drivers.game_id AS Driver_Name,
+           b.series_id AS Series_ID,
+           finish_position AS Finish,
+           start_position AS Start,
+           car_number AS Number,
+           interval AS Interval,
+           laps AS Laps,
+           led AS Led,
+           IFNULL(total_points, race_records.points) AS Points,
+           finish_status AS Status
+      FROM race_records
+           LEFT JOIN
+           drivers ON race_records.driver_id = drivers.id
+           LEFT JOIN
+           (
+               SELECT season_num,
+                      series_id,
+                      races.id,
+                      IFNULL(name, track_name) AS race_name,
+                      track_name
+                 FROM races
+                      LEFT JOIN
+                      tracks ON races.track_id = tracks.id
+                      LEFT JOIN
+                      (
+                          SELECT season_num,
+                                 series_id,
+                                 id AS season_id
+                            FROM seasons
+                      )
+                      a ON races.season_id = a.season_id
+           )
+           b ON race_records.race_id = b.id
+           LEFT JOIN
+           (
+               SELECT race_id,
+                      driver_id,
+                      finish_points + pole_points + lap_led_points + most_led_points AS total_points
+                 FROM points_per_race
+           )
+           c ON race_records.race_id = c.race_id AND 
+                race_records.driver_id = c.driver_id;

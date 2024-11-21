@@ -18,10 +18,9 @@ def get_race_records(race_id):
     # gonna need race records and race info (name, track, series, season)
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
-        i = cursor.execute(f"""SELECT finish_position AS finish, start_position AS start, CASE WHEN car_number > 1999 THEN '0' || (car_number-2000) ELSE car_number END AS number, game_id AS driver, interval, laps, led, points, finish_status AS status
-                                FROM race_records
-                                LEFT JOIN drivers ON drivers.id = race_records.driver_id
-                                WHERE race_id = {race_id}"""
+        i = cursor.execute(f"""SELECT Finish, Start, CASE WHEN Number > 1999 THEN '0' || (Number-2000) ELSE Number END AS Number, Driver_Name, Interval, Laps, Led, Points, Status
+FROM driver_race_records
+WHERE race_id = {race_id}"""
                         ).fetchall()
         keys = [j[0] for j in cursor.description]
         for record in i:

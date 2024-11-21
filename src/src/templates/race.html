@@ -37,15 +37,15 @@
             </tr>
             {% for record in records %}
             <tr>
-                <td>{{record['finish']}}</td>
-                <td>{{record['start']}}</td>
-                <td>{{record['number']}}</td>
-                <td><a href="/driver/{{record['driver']}}/">{{record['driver']}}</a></td>
-                <td>{{record['interval']}}</td>
-                <td>{{record['laps']}}</td>
-                <td>{{record['led']}}</td>
-                <td>{{record['points']}}</td>
-                <td>{{record['status']}}</td>
+                <td>{{record['Finish']}}</td>
+                <td>{{record['Start']}}</td>
+                <td>{{record['Number']}}</td>
+                <td><a href="/driver/{{record['Driver_Name']}}/">{{record['Driver_Name']}}</a></td>
+                <td>{{record['Interval']}}</td>
+                <td>{{record['Laps']}}</td>
+                <td>{{record['Led']}}</td>
+                <td>{{record['Points']}}</td>
+                <td>{{record['Status']}}</td>
             </tr>
             {% endfor %}
         </table>

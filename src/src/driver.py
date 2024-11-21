@@ -3,17 +3,6 @@ from db import DB_PATH
 import sqlite3
 
 driver_page = Blueprint("driver_page", __name__, url_prefix='/driver')
-# use this as a base, then add where clauses onto it in practice
-GET_DRIVER_RESULTS_QUERY = "race_name as Race, race_id as Race_ID, track_name as Track, finish_position as Finish, start_position as Start, \
-car_number as Number, interval as Interval, laps as Laps, led as Led, points as Points, finish_status as Status \
-FROM race_records \
-LEFT JOIN drivers ON driver_id = drivers.id \
-LEFT JOIN ( \
-    SELECT season_num, series_id,races.id, IFNULL(name, track_name) as race_name, track_name \
-    FROM races \
-    LEFT JOIN tracks ON races.track_id = tracks.id \
-    LEFT JOIN (SELECT season_num, series_id, id AS season_id FROM seasons) a ON races.season_id = a.season_id \
-) b ON race_records.race_id = b.id"
 
 @driver_page.route("/")
 def get_drivers():
@@ -65,10 +54,10 @@ ORDER BY YEAR ASC"
 def driver_results_by_series(game_id: str, series_id: int, filter:str):
     """list race results of a driver for a given series across all seasons, ordered by season and then race ID"""
     data = []
-    filter_dict = {'all': '', 'win': 'AND finish_position = 1', 'top5': 'AND finish_position <= 5', 'top10': 'AND finish_position <=10', 'pole': 'AND start_position = 1'}
+    filter_dict = {'all': '', 'win': 'AND Finish = 1', 'top5': 'AND Finish <= 5', 'top10': 'AND Finish <=10', 'pole': 'AND Start = 1'}
     
-    query = f"SELECT season_num as Year, {GET_DRIVER_RESULTS_QUERY} WHERE game_id = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY season_num ASC, race_id ASC"
-    
+    query = f"SELECT Year, Race, Track, Driver_Name, Finish, Start, Number, Interval, Laps, Led, Points, Status FROM driver_race_records WHERE Driver_Name = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY Year ASC, Race_ID ASC"
+
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
@@ -92,7 +81,7 @@ def driver_results_by_season(game_id: str, series_id: int, season_num: int):
     data = []
     series_name = ""
 
-    query = f"SELECT {GET_DRIVER_RESULTS_QUERY} WHERE game_id = '{game_id}' AND series_id = {series_id} AND season_num = {season_num}"
+    query = f"SELECT Year, Race, Track, Driver_Name, Finish, Start, Number, Interval, Laps, Led, Points, Status FROM driver_race_records WHERE Driver_Name = '{game_id}' AND series_id = {series_id} AND Year = {season_num}"
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
