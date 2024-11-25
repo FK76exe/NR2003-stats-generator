@@ -90,6 +90,7 @@ def get_schedule(series, season):
         cursor = con.cursor()
 
         season_id_query = f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}"
+        # TODO add 404 abort if no results
         season_id = cursor.execute(season_id_query).fetchall()[0][0]
 
         query = f"SELECT races.id as race_id, name, tracks.id as track_id, track_name AS Track, game_id AS Winner FROM races LEFT JOIN tracks ON track_id = tracks.id LEFT JOIN (SELECT race_id, game_id FROM race_records LEFT JOIN drivers ON driver_id = drivers.id WHERE finish_position = 1) ON race_id = races.id WHERE season_id = {season_id}"
@@ -129,7 +130,7 @@ def delete_series(series):
 def add_season(series_id, request):
     """Add season to a given series."""
     season_num, points_system = request.form['season_num'], request.form['system']
-    query = f"INSERT INTO seasons (series_id, season_num, points_system) VALUES ({series_id}, {season_num}, {points_system})"
+    query = f"INSERT INTO seasons (series_id, season_num, points_system_id) VALUES ({series_id}, {season_num}, {points_system})"
     
     try:
         with sqlite3.connect(DB_PATH) as con:
