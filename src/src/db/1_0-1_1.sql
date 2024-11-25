@@ -89,8 +89,19 @@ CREATE VIEW IF NOT EXISTS points_per_race AS
 
 -- ALTER TABLE seasons ADD COLUMN points_system_id INTEGER REFERENCES points_systems(id); -- no assigned points system leads to null
 
+CREATE TABLE IF NOT EXISTS manual_points (
+    driver_id         INTEGER REFERENCES drivers (id) ON DELETE CASCADE,
+    season_id         INTEGER REFERENCES seasons (id) ON DELETE CASCADE,
+    adjustment_points INTEGER DEFAULT (0),
+    PRIMARY KEY (
+        driver_id,
+        season_id
+    )
+);
+
+
 -- safe to drop a view since its just an aggregator
-DROP VIEW points_view;
+DROP VIEW IF EXISTS points_view;
 
 CREATE VIEW IF NOT EXISTS points_view AS
     SELECT seasons.season_num AS year, series.name AS series, game_id, IFNULL(races,0) as RACES, IFNULL(wins,0) as WIN, IFNULL(top5, 0) AS "TOP 5", IFNULL(top10, 0) AS "TOP 10", 
@@ -160,20 +171,22 @@ CREATE VIEW IF NOT EXISTS points_view AS
 
     -- points
     LEFT JOIN (
-    SELECT season_id, driver_id, SUM(finish_points + pole_points + lap_led_points + most_led_points) as points
+    SELECT points_per_race.season_id, points_per_race.driver_id, SUM(finish_points + pole_points + lap_led_points + most_led_points) + IFNULL(adjustment_points, 0) as points
     FROM points_per_race
-    GROUP BY season_id, driver_id
+    LEFT JOIN manual_points ON manual_points.season_id = points_per_race.season_id AND manual_points.driver_id = points_per_race.driver_id
+    GROUP BY points_per_race.season_id, points_per_race.driver_id
     ) m ON drivers.id = m.driver_id AND seasons.id = m.season_id
 
     ORDER BY points DESC;
 
 -- TODO add versions schema: https://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
 
-DROP VIEW driver_race_records;
+DROP VIEW IF EXISTS driver_race_records;
 
-CREATE VIEW driver_race_records AS
+CREATE VIEW IF NOT EXISTS driver_race_records AS
     SELECT season_num AS Year,
            race_name AS Race,
+           b.season_id AS Season_ID,
            race_records.race_id AS Race_ID,
            track_name AS Track,
            race_records.driver_id AS Driver_ID,
@@ -193,6 +206,7 @@ CREATE VIEW driver_race_records AS
            LEFT JOIN
            (
                SELECT season_num,
+                      races.season_id,
                       series_id,
                       races.id,
                       IFNULL(name, track_name) AS race_name,

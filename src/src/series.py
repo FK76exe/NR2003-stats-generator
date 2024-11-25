@@ -1,3 +1,5 @@
+# TODO split this thing between seasons and series
+
 from flask import Blueprint, render_template, request, redirect, url_for, abort
 from markupsafe import escape
 import sqlite3
@@ -168,6 +170,37 @@ def update_points_system(series, season):
             con.commit()
         return redirect(url_for('series_page.show_series', series=series, season=season))
         
+@series_page.route("<series>/<season>/adjust_points", methods=['GET', 'POST'])
+def adjust_points(series, season):
+    if request.method == 'GET':
+        drivers = [] # array of dicts with keys ['id', 'game_id']
+        with sqlite3.connect(DB_PATH) as con:
+            con.row_factory = sqlite3.Row
+            cursor = con.cursor()
+            drivers = cursor.execute(
+                f"SELECT DISTINCT id, game_id AS name, IFNULL(adjustment_points, 0) AS points \
+                FROM drivers \
+                LEFT JOIN driver_race_records ON drivers.id = driver_race_records.Driver_ID \
+                LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = driver_race_records.Season_ID \
+                WHERE Series_ID = 10 AND Year = 2024 ORDER BY game_id ASC"
+                ).fetchall()
+            return render_template('./season/adjust_points.html',drivers=drivers)
+    
+    # insert only those who have nonzero total (efficiency... I think? idk)
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+
+        season_id = cursor.execute(f"SELECT id FROM seasons WHERE season_num={season} AND series_id={series}").fetchall()[0][0]
+
+        form = request.form
+        for driver in form.keys():
+            # if int(form[driver]) != 0: # problem: you cannot "reset" adjustment points to 0
+                points = int(form[driver])
+                # this is an upsert clause (if insert violates something -> update)
+                cursor.execute(f"INSERT INTO manual_points VALUES ({int(driver)}, {season_id}, {points}) \
+                                ON CONFLICT (driver_id, season_id) DO UPDATE SET adjustment_points={points}")
+        con.commit()
+    return redirect(url_for('series_page.show_series', series=series, season=season))
 
 def add_weekend(series, season, request):
     """Add a weekend (HTML file) to a given season"""
