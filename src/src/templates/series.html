@@ -1,5 +1,5 @@
 {% from "macro.html" import initial_deletion, confirm_deletion, main_navigation with context %}
-
+{% from "./season/season_nav.html" import season_nav %}
 <html>
     <head>
         <title>
@@ -25,7 +25,7 @@
                 {% for stat in season %}
                 <td>
                     {% if loop.index == 1 %}
-                        <a href="/series/{{id}}/{{stat}}/">{{stat}}</a>
+                        <a href="/series/{{id}}/{{stat}}">{{stat}}</a>
                     {% else %}
                         {{stat}}
                     {% endif %}

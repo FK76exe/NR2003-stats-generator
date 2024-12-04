@@ -1,4 +1,4 @@
-{% from "macro.html" import navLink, main_navigation with context %}
+{% from "./season/season_nav.html" import season_nav%}
 <!DOCTYPE html>
 <head>
     <title>Season Standings</title>
@@ -6,12 +6,7 @@
 </head>
 <body>
     <!-- Navbar -->
-    {{ main_navigation() }}
-    <ul class="nav">
-        {{ navLink('Schedule',"../") }}
-        {{ navLink('Change Points System', "../change_points")}}
-    </ul>
-    
+    {{season_nav(series, season)}}
 
     <table>
         <tr>

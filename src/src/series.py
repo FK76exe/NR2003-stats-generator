@@ -155,13 +155,13 @@ def delete_season(series, season):
         con.commit() # add this, so that everyone can see deletion
     return redirect("../", code=302)
 
-@series_page.route("<series>/<season>/change_points", methods = ['GET', 'POST'])
+@series_page.route("<series>/<season>/change_points/", methods = ['GET', 'POST'])
 def update_points_system(series, season):
     if request.method == 'GET':
         systems = []
         with sqlite3.connect(DB_PATH) as con:
             systems = con.cursor().execute("SELECT id, name FROM point_systems").fetchall()
-        return render_template('./season/change_points.html', systems=systems)
+        return render_template('./season/change_points.html', systems=systems, series=series, season=season)
     else:
         with sqlite3.connect(DB_PATH) as con:
             cursor = con.cursor()
@@ -170,7 +170,7 @@ def update_points_system(series, season):
             con.commit()
         return redirect(url_for('series_page.show_series', series=series, season=season))
         
-@series_page.route("<series>/<season>/adjust_points", methods=['GET', 'POST'])
+@series_page.route("<series>/<season>/adjust_points/", methods=['GET', 'POST'])
 def adjust_points(series, season):
     if request.method == 'GET':
         drivers = [] # array of dicts with keys ['id', 'game_id']
@@ -184,7 +184,7 @@ def adjust_points(series, season):
                 LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = driver_race_records.Season_ID \
                 WHERE Series_ID = 10 AND Year = 2024 ORDER BY game_id ASC"
                 ).fetchall()
-            return render_template('./season/adjust_points.html',drivers=drivers)
+            return render_template('./season/adjust_points.html',drivers=drivers, series=series, season=season)
     
     # insert only those who have nonzero total (efficiency... I think? idk)
     with sqlite3.connect(DB_PATH) as con:
