@@ -1,0 +1,42 @@
+{% from "./season/season_nav.html" import season_nav %}
+
+<html>
+    <head>
+        <title>Manual Points Edit</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+        {{season_nav(series, season)}}
+        
+        You can add or remove points for a driver manually.
+
+        To do so, enter the points adjustment in the box before each driver and then click the Save button.
+
+        <form id="manual_edit" method="post"></form>
+
+        <table>
+            <tr>
+                <td>
+                    Driver
+                </td>
+                <td>
+                    Points
+                </td>
+            </tr>
+            {% for driver in drivers %}
+            <tr>
+                <td>
+                    {{driver['name']}}
+                </td>
+                <td>
+                    <input type="number" name="{{driver['id']}}" size="8" value="{{driver['points']}}" form="manual_edit">
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <button form="manual_edit">
+            Save
+        </button>
+    </body>
+</html>

@@ -1,0 +1,13 @@
+<h1>Point Systems</h1>
+
+<ul>
+    {% for system in systems %}
+    <li>
+        <a href="./{{system[0]}}/">{{system[1]}}</a>
+    </li>
+    {% endfor %}
+</ul>
+
+<button onclick="window.open('./add')">
+        Create A New System
+</button>

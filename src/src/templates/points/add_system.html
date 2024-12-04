@@ -1,0 +1,63 @@
+{% from "macro.html" import main_navigation %}
+
+<h1>Create new Points System</h1>
+
+<form method="post" id="points_form">
+    <!-- name of system -->
+    <input name="name" required> 
+</form>
+
+<!-- add position elements plus bonus -->
+<h2>Position Points</h2>
+<table>
+    <tr>
+        <td>
+            Position
+        </td>
+        <td>
+            Points
+        </td>
+    </tr>
+    {% for i in range (1,44) %}
+    <tr>
+        <td>
+            {{i}}
+        </td>
+        <td>
+            <input type="number" size="4" value="0" name="{{i}}" form="points_form" required>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Bonus Points</h2>
+<table>
+    <tr>
+        <td>
+            Pole
+        </td>
+        <td>
+            Led 1 lap
+        </td>
+        <td>
+            Led most laps
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input type="number" size="4" value="0" name="P" form="points_form" required>
+        </td>
+        <td>
+            <input type="number" size="4" value="0" name="LL" form="points_form" required>
+        </td>
+        <td>
+            <input type="number" size="4" value="0" name="MLL" form="points_form" required>
+        </td>
+    </tr>
+</table>
+
+<br>
+<button form="points_form">Save</button>
+
+<br>
+<b>Note:</b> if there is a tie for who leads the most laps, default tiebreaker is finishing position

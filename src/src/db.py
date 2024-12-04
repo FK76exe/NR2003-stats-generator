@@ -19,6 +19,7 @@ cursor = con.cursor()
 # read SQL script into string and execute it
 query = open(path.abspath(path.join(BASE_PATH, 'db/create-tables.sql'))).read()
 query += open(path.abspath(path.join(BASE_PATH, 'db/create-views.sql'))).read()
+query += open(path.abspath(path.join(BASE_PATH, 'db/1_0-1_1.sql'))).read()
 
 cursor.executescript(query)
 con.commit()

@@ -1,5 +1,5 @@
 {% from "macro.html" import initial_deletion, confirm_deletion, main_navigation with context %}
-
+{% from "./season/season_nav.html" import season_nav %}
 <html>
     <head>
         <title>
@@ -25,7 +25,7 @@
                 {% for stat in season %}
                 <td>
                     {% if loop.index == 1 %}
-                        <a href="/series/{{id}}/{{stat}}/">{{stat}}</a>
+                        <a href="/series/{{id}}/{{stat}}">{{stat}}</a>
                     {% else %}
                         {{stat}}
                     {% endif %}
@@ -66,8 +66,15 @@
         <hr>
         Add New Season. Note that it must have a unique number.
         <form method="post">
+            <label for="season_num">Enter Season Number. It must not be used by another season in the same series.</label>
             <input type="number" step="1" name="season_num" required>
             <br>
+            <label for="system">Select a points system from the dropdown:</label>
+            <select name="system" required>
+                {% for system in systems %}
+                <option value="{{system[0]}}">{{system[1]}}</option>
+                {% endfor %}
+            </select>
             <input type="submit" value="Submit">
         </form>
 

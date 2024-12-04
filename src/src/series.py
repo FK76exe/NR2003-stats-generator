@@ -1,3 +1,5 @@
+# TODO split this thing between seasons and series
+
 from flask import Blueprint, render_template, request, redirect, url_for, abort
 from markupsafe import escape
 import sqlite3
@@ -43,6 +45,7 @@ def get_series_info(series_id):
     season_desc = ['Year', 'Races', 'Points Leader']
     season_stats = ()
     series_name = None
+    systems = []
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(f"SELECT COUNT(*) as Seasons, game_id as Driver, sum(RACES) as Races, sum(WIN) as Wins, sum([TOP 5]) as [Top 5s], sum([TOP 10]) as [Top 10s], \
@@ -70,14 +73,15 @@ GROUP BY season_num
         season_stats = cursor.fetchall()
 
         series_name = cursor.execute(f"SELECT name FROM series WHERE id = {series_id}").fetchall()[0][0]
+        systems = cursor.execute("SELECT id, name FROM point_systems").fetchall()
     
     return render_template('series.html', driver_headers = driver_desc, driver_stats = driver_stats,
-                           season_headers = season_desc, season_stats = season_stats, series = series_name, id = series_id)
+                           season_headers = season_desc, season_stats = season_stats, series = series_name, id = series_id, systems=systems)
 
 @series_page.route("/<series>/<season>/", methods=['GET', 'POST'])
 def season_main(series, season):
     """return list of races, with track and winner for a given season."""
-    
+
     if request.method == 'POST':
         return add_weekend(series, season, request)
     else:
@@ -88,6 +92,7 @@ def get_schedule(series, season):
         cursor = con.cursor()
 
         season_id_query = f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}"
+        # TODO add 404 abort if no results
         season_id = cursor.execute(season_id_query).fetchall()[0][0]
 
         query = f"SELECT races.id as race_id, name, tracks.id as track_id, track_name AS Track, game_id AS Winner FROM races LEFT JOIN tracks ON track_id = tracks.id LEFT JOIN (SELECT race_id, game_id FROM race_records LEFT JOIN drivers ON driver_id = drivers.id WHERE finish_position = 1) ON race_id = races.id WHERE season_id = {season_id}"
@@ -96,7 +101,7 @@ def get_schedule(series, season):
         series_query = f"SELECT name FROM seasons LEFT JOIN series ON seasons.series_id = series.id WHERE seasons.id={season_id}"
         series_name = cursor.execute(series_query).fetchall()
 
-    return render_template('season.html', schedule=schedule, season=season, series_name=series_name[0][0], series=series, tracks=get_tracks())
+    return render_template('./season/season.html', schedule=schedule, season=season, series_name=series_name[0][0], series=series, tracks=get_tracks())
 
 @series_page.route("/<series>/<season>/points/")
 def show_series(series, season):
@@ -110,7 +115,7 @@ def show_series(series, season):
         cursor.execute(query)
         header = ["RANK"] + [col[0] for col in cursor.description]
         data = cursor.fetchall()
-    return render_template('season_table.html',header=header, records=data, series=series, season=season)
+    return render_template('./season/season_table.html',header=header, records=data, series=series, season=season)
 
 @series_page.route("/<series>/delete/", methods = ['DELETE'])
 def delete_series(series):
@@ -126,8 +131,8 @@ def delete_series(series):
 
 def add_season(series_id, request):
     """Add season to a given series."""
-    season_num = request.form['season_num']
-    query = f"INSERT INTO seasons (series_id, season_num) VALUES ({series_id}, {season_num})"
+    season_num, points_system = request.form['season_num'], request.form['system']
+    query = f"INSERT INTO seasons (series_id, season_num, points_system_id) VALUES ({series_id}, {season_num}, {points_system})"
     
     try:
         with sqlite3.connect(DB_PATH) as con:
@@ -150,12 +155,60 @@ def delete_season(series, season):
         con.commit() # add this, so that everyone can see deletion
     return redirect("../", code=302)
 
+@series_page.route("<series>/<season>/change_points/", methods = ['GET', 'POST'])
+def update_points_system(series, season):
+    if request.method == 'GET':
+        systems = []
+        with sqlite3.connect(DB_PATH) as con:
+            systems = con.cursor().execute("SELECT id, name FROM point_systems").fetchall()
+        return render_template('./season/change_points.html', systems=systems, series=series, season=season)
+    else:
+        with sqlite3.connect(DB_PATH) as con:
+            cursor = con.cursor()
+            season_id = cursor.execute(f"SELECT id FROM seasons WHERE series_id = {series} AND season_num = {season}").fetchall()[0][0]
+            cursor.execute(f"UPDATE seasons SET points_system_id = {int(request.form['chosen_system'])} WHERE id = {season_id}")
+            con.commit()
+        return redirect(url_for('series_page.show_series', series=series, season=season))
+        
+@series_page.route("<series>/<season>/adjust_points/", methods=['GET', 'POST'])
+def adjust_points(series, season):
+    if request.method == 'GET':
+        drivers = [] # array of dicts with keys ['id', 'game_id']
+        with sqlite3.connect(DB_PATH) as con:
+            con.row_factory = sqlite3.Row
+            cursor = con.cursor()
+            drivers = cursor.execute(
+                f"SELECT DISTINCT id, game_id AS name, IFNULL(adjustment_points, 0) AS points \
+                FROM drivers \
+                LEFT JOIN driver_race_records ON drivers.id = driver_race_records.Driver_ID \
+                LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = driver_race_records.Season_ID \
+                WHERE Series_ID = 10 AND Year = 2024 ORDER BY game_id ASC"
+                ).fetchall()
+            return render_template('./season/adjust_points.html',drivers=drivers, series=series, season=season)
+    
+    # insert only those who have nonzero total (efficiency... I think? idk)
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+
+        season_id = cursor.execute(f"SELECT id FROM seasons WHERE season_num={season} AND series_id={series}").fetchall()[0][0]
+
+        form = request.form
+        for driver in form.keys():
+            # if int(form[driver]) != 0: # problem: you cannot "reset" adjustment points to 0
+                points = int(form[driver])
+                # this is an upsert clause (if insert violates something -> update)
+                cursor.execute(f"INSERT INTO manual_points VALUES ({int(driver)}, {season_id}, {points}) \
+                                ON CONFLICT (driver_id, season_id) DO UPDATE SET adjustment_points={points}")
+        con.commit()
+    return redirect(url_for('series_page.show_series', series=series, season=season))
+
 def add_weekend(series, season, request):
     """Add a weekend (HTML file) to a given season"""
 
     race_name = request.form['name']
     race_track = request.form['track']
     race_file = request.files['file']
+
     weekend_dict = file_scraper.scrape_results(race_file.read().decode("windows-1252"))
     
     # drivers - from all sessions (in case of a dns)
@@ -192,18 +245,18 @@ def add_weekend(series, season, request):
             match session:
                 case 'Practice':
                     practice_list = [[race_id, 1, record[0], record[1], 
-                                      driver_id_dict[record[2]], record[3]
-                     ] for record in weekend_dict[session]]
+                                    driver_id_dict[record[2]], record[3]
+                    ] for record in weekend_dict[session]]
                     cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", practice_list) 
                 case 'Qualifying':
                     qualifying_list = [[race_id, 2, record[0], record[1], 
-                                      driver_id_dict[record[2]], record[3]
-                     ] for record in weekend_dict[session]]
+                                    driver_id_dict[record[2]], record[3]
+                    ] for record in weekend_dict[session]]
                     cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", qualifying_list)
                 case 'Happy Hour':
                     happy_hour_list = [[race_id,3, record[0], record[1], 
-                                      driver_id_dict[record[2]], record[3]
-                     ] for record in weekend_dict[session]]
+                                    driver_id_dict[record[2]], record[3]
+                    ] for record in weekend_dict[session]]
                     cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", happy_hour_list)   
                 case 'Race':
                     race_list = [[race_id] + record[:3] + [driver_id_dict[record[3]]] + [str(record[4])] + record[5:8] + [str(record[8])] for record in weekend_dict[session]] 

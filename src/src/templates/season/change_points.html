@@ -1,0 +1,24 @@
+{% from "./season/season_nav.html" import season_nav %}
+
+<html>
+    <head>
+        Update Points System
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+        {{season_nav(series, season)}}
+
+
+        <h1>Update Points System</h1>
+        <form method="post" id="updated_points">
+            <label>Select Desired Points System</label>
+            <select name="chosen_system">
+                {% for system in systems %}
+                    <option value="{{system[0]}}">{{system[1]}}</option>
+                {% endfor %}
+            </select>
+        </form>
+        <button form="updated_points">Save</button>
+        
+    </body>
+</html>
