@@ -1,0 +1,31 @@
+<html>
+    <head>
+        <title>{{team_name}}</title>
+    </head>
+    <body>
+        <h1>{{team_name}}</h1>
+
+        <!-- Insert content here... -->
+
+        <form id="update_team" method="post">
+            <label>Update Team Name (It must be unique):</label>
+            <input type="text" name="name">
+        </form>
+        <button form="update_team">Save</button>
+
+        <br>
+        Note: Upon deletion, all entries the team is linked to will remain but without a link to any team
+        <button onclick="DeleteTrack()">Delete Team</button>
+    </body>
+</html>
+<script>
+function DeleteTrack() {
+    fetch(window.location.href, {method: 'DELETE'})
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            }).catch(error => console.log(error))
+    }
+
+</script>
