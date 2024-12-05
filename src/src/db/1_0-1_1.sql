@@ -233,3 +233,19 @@ CREATE VIEW IF NOT EXISTS driver_race_records AS
            )
            c ON race_records.race_id = c.race_id AND 
                 race_records.driver_id = c.driver_id;
+
+CREATE TABLE IF NOT EXISTS teams (
+    id   INTEGER PRIMARY KEY
+                 UNIQUE
+                 NOT NULL,
+    name VARCHAR UNIQUE
+                 NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS entries (
+    id    INTEGER    PRIMARY KEY,
+    num    INTEGER,
+    season_id INTEGER REFERENCES seasons(id),
+    team_id    INTEGER REFERENCES teams(id),
+    UNIQUE(num, season_id, team_id) ON CONFLICT IGNORE
+    );
