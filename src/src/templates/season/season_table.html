@@ -15,6 +15,12 @@
                     <b>{{ header }}</b>
                 </td>
             {% endfor %}
+                <td>
+                    <b>BEHIND</b>
+                </td>
+                <td>
+                    <b>NEXT</b>
+                </td>
         </tr>
         {% for row in records %}
         <tr>
@@ -30,6 +36,21 @@
                     {% endif %}
                 </td>
             {% endfor %}
+            {% if loop.index == 1 %}
+                <td>
+                    LEADER
+                </td>
+                <td>
+                    LEADER
+                </td>
+            {% else %}
+                <td>
+                    {{ row[-1] - records[0][-1]}}
+                </td>
+                <td>
+                    {{ row[-1] - records[loop.index0 - 1][-1]}}
+                </td>
+            {% endif %}
         </tr>
         {% endfor %}
     </table>
