@@ -1,4 +1,4 @@
-# TODO split this thing between seasons and series
+# TODO split this thing between seasons and series (see parenting of blueprints)
 
 from flask import Blueprint, render_template, request, redirect, url_for, abort
 from markupsafe import escape
@@ -176,13 +176,14 @@ def adjust_points(series, season):
         drivers = [] # array of dicts with keys ['id', 'game_id']
         with sqlite3.connect(DB_PATH) as con:
             con.row_factory = sqlite3.Row
+            season_id = cursor.execute(f"SELECT id FROM seasons WHERE season_num={season} AND series_id={series}").fetchall()[0][0]
             cursor = con.cursor()
             drivers = cursor.execute(
                 f"SELECT DISTINCT id, game_id AS name, IFNULL(adjustment_points, 0) AS points \
                 FROM drivers \
                 LEFT JOIN driver_race_records ON drivers.id = driver_race_records.Driver_ID \
                 LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = driver_race_records.Season_ID \
-                WHERE Series_ID = 10 AND Year = 2024 ORDER BY game_id ASC"
+                WHERE Series_ID = {series} AND Year = {season_id} ORDER BY game_id ASC"
                 ).fetchall()
             return render_template('./season/adjust_points.html',drivers=drivers, series=series, season=season)
     
@@ -202,6 +203,33 @@ def adjust_points(series, season):
         con.commit()
     return redirect(url_for('series_page.show_series', series=series, season=season))
 
+@series_page.route("<series>/<season>/entrants/", methods=['GET', 'POST'])
+def view_entrants(series, season):
+    if request.method == 'GET':
+        entrants = []
+        teams = []
+        with sqlite3.connect(DB_PATH) as con:
+            con.row_factory = sqlite3.Row
+            cursor = con.cursor()
+            season_id = get_season_id(series, season)
+            entrants = cursor.execute(f'SELECT * FROM entrants WHERE season_id = {season_id} ORDER BY number ASC').fetchall()
+            teams = cursor.execute(f'SELECT * FROM teams ORDER BY name ASC').fetchall()
+            return render_template('./season/entrants.html', entrants=entrants, series=series, season=season, teams=teams)
+
+    # add
+    with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = sqlite3.Row
+        cursor = con.cursor()
+        season_id = get_season_id(series, season)
+        entrant_team_tuples = [(int(request.form[entrant_id]), int(entrant_id)) for entrant_id in request.form.keys()]
+        cursor.executemany(f"UPDATE entrants SET team_id = ? WHERE id = ?", entrant_team_tuples)
+    return redirect(url_for('series_page.view_entrants', series=series, season=season))
+
+def get_season_id(series_id, season_num):
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+        return cursor.execute(f"SELECT id FROM seasons WHERE season_num={season_num} AND series_id={series_id}").fetchall()[0][0]
+
 def add_weekend(series, season, request):
     """Add a weekend (HTML file) to a given season"""
 
@@ -211,60 +239,57 @@ def add_weekend(series, season, request):
 
     weekend_dict = file_scraper.scrape_results(race_file.read().decode("windows-1252"))
     
-    # drivers - from all sessions (in case of a dns)
+    # drivers/entrants - from all sessions (in case of a dns)
     drivers = set()
+    entrant_nums = set()
     if 'Practice' in weekend_dict.keys():
+        # a | b = union of set a and set b
         drivers = drivers | set((row[2], ) for row in weekend_dict['Practice'])
+        entrant_nums = entrant_nums | set((row[1], ) for row in weekend_dict['Practice'])
     if 'Happy Hour' in weekend_dict.keys():
         drivers = drivers | set((row[2], ) for row in weekend_dict['Happy Hour'])
+        entrant_nums = entrant_nums | set((row[1], ) for row in weekend_dict['Happy Hour'])
     drivers = drivers | set((row[2], ) for row in weekend_dict['Qualifying']) | set((row[3], ) for row in weekend_dict['Race'])
+    entrant_nums = entrant_nums | set((row[1], ) for row in weekend_dict['Qualifying']) | set((row[2], ) for row in weekend_dict['Race'])
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
 
         # get season id
         cursor.execute(f"SELECT id FROM seasons WHERE series_id={series} AND season_num={season}")
-        race_season = cursor.fetchone()[0]
+        race_season_id = cursor.fetchone()[0]
         
-        cursor.execute(f"INSERT INTO races (name, season_id, race_file, track_id) VALUES ('{race_name}', {int(race_season)}, '{race_file.filename}', {int(race_track)})")
+        # get new race id
+        cursor.execute(f"INSERT INTO races (name, season_id, race_file, track_id) VALUES ('{race_name}', {int(race_season_id)}, '{race_file.filename}', {int(race_track)})")
         race_id = cursor.lastrowid
 
-        # create drivers if they don't exist
+        # create drivers and entrants if they don't exist
         cursor.executemany(f"INSERT OR IGNORE INTO drivers (game_id) VALUES (?)", drivers)
+        cursor.executemany(f"INSERT OR IGNORE INTO entrants (season_id, number) VALUES (?, ?)", [(race_season_id, int(i[0])) for i in entrant_nums])
 
         # get id of drivers
         cursor.execute(f"SELECT id, game_id FROM drivers")
-        driver_data = cursor.fetchall()
+        driver_ids = cursor.fetchall()
         
         driver_id_dict = {} # map id to game id
-        for driver in driver_data:
+        for driver in driver_ids:
             driver_id_dict[driver[1]] = driver[0]
 
         # add driver data
+        session_ids = {'Practice': 1, 'Qualifying': 2, 'Happy Hour': 3}
         for session in weekend_dict.keys():
-            match session:
-                case 'Practice':
-                    practice_list = [[race_id, 1, record[0], record[1], 
-                                    driver_id_dict[record[2]], record[3]
-                    ] for record in weekend_dict[session]]
-                    cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", practice_list) 
-                case 'Qualifying':
-                    qualifying_list = [[race_id, 2, record[0], record[1], 
-                                    driver_id_dict[record[2]], record[3]
-                    ] for record in weekend_dict[session]]
-                    cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", qualifying_list)
-                case 'Happy Hour':
-                    happy_hour_list = [[race_id,3, record[0], record[1], 
-                                    driver_id_dict[record[2]], record[3]
-                    ] for record in weekend_dict[session]]
-                    cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", happy_hour_list)   
-                case 'Race':
-                    race_list = [[race_id] + record[:3] + [driver_id_dict[record[3]]] + [str(record[4])] + record[5:8] + [str(record[8])] for record in weekend_dict[session]] 
-                    cursor.executemany("INSERT INTO race_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", race_list)
-                case 'Penalties':
-                    if len(weekend_dict[session]) > 0:
-                        penalty_list = [[race_id] + record for record in weekend_dict[session]]
-                        cursor.execute("INSERT INTO penalties (race_id, lap, number, infraction, penalty) VALUES (?, ?, ?, ?, ?)", penalty_list)
+            if session in session_ids.keys():
+                timed_session_list = [
+                    [race_id, session_ids[session], record[0], record[1],  driver_id_dict[record[2]], record[3]]
+                    for record in weekend_dict[session]]
+                cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", timed_session_list)
+            elif session == 'Race':
+                race_list = [[race_id] + record[:3] + [driver_id_dict[record[3]]] + [str(record[4])] + record[5:8] + [str(record[8])] for record in weekend_dict[session]] 
+                cursor.executemany("INSERT INTO race_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", race_list) 
+            else: # penalties
+                if len(weekend_dict[session]) > 0:
+                    penalty_list = [[race_id] + record for record in weekend_dict[session]]
+                    cursor.execute("INSERT INTO penalties (race_id, lap, number, infraction, penalty) VALUES (?, ?, ?, ?, ?)", penalty_list)
         con.commit()
 
     return get_schedule(series, season)

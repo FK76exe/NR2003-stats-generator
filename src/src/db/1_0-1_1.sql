@@ -249,3 +249,22 @@ CREATE TABLE IF NOT EXISTS entries (
     team_id    INTEGER REFERENCES teams(id),
     UNIQUE(num, season_id, team_id) ON CONFLICT IGNORE
     );
+
+CREATE TABLE IF NOT EXISTS entrants (
+    id        INTEGER PRIMARY KEY,
+    season_id INTEGER REFERENCES seasons (id) ON DELETE CASCADE,
+    number    INTEGER,
+    team_id   INTEGER REFERENCES teams (id) ON DELETE SET NULL,
+    UNIQUE (
+        season_id,
+        number,
+        team_id
+    )
+);
+
+-- alter race_records -> set driver_id as foreign key for drivers (id)
+-- add column entrant_id      INTEGER REFERENCES entrants (id)
+
+/* why not use car number directly? needs to be tied to entrant (season needed) */
+/* NOTE: For pre-update leagues, will need to add another race to get entrants added */
+/* OK: BETTER APPROACH - FORGET ABOUT PRE-UPDATE USERS; FOCUS ON CURRENT ONE AND THEN CREATE A MIGRATION SCRIPT
