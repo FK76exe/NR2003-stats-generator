@@ -251,21 +251,27 @@ def add_weekend(series, season, request):
         entrant_nums = entrant_nums | set((row[1], ) for row in weekend_dict['Happy Hour'])
     drivers = drivers | set((row[2], ) for row in weekend_dict['Qualifying']) | set((row[3], ) for row in weekend_dict['Race'])
     entrant_nums = entrant_nums | set((row[1], ) for row in weekend_dict['Qualifying']) | set((row[2], ) for row in weekend_dict['Race'])
+    entrant_nums = [int(num[0]) for num in entrant_nums]
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
 
         # get season id
         cursor.execute(f"SELECT id FROM seasons WHERE series_id={series} AND season_num={season}")
-        race_season_id = cursor.fetchone()[0]
+        season_id = cursor.fetchone()[0]
         
         # get new race id
-        cursor.execute(f"INSERT INTO races (name, season_id, race_file, track_id) VALUES ('{race_name}', {int(race_season_id)}, '{race_file.filename}', {int(race_track)})")
+        cursor.execute(f"INSERT INTO races (name, season_id, race_file, track_id) VALUES ('{race_name}', {int(season_id)}, '{race_file.filename}', {int(race_track)})")
         race_id = cursor.lastrowid
 
-        # create drivers and entrants if they don't exist
+        # create drivers if they don't exist
         cursor.executemany(f"INSERT OR IGNORE INTO drivers (game_id) VALUES (?)", drivers)
-        cursor.executemany(f"INSERT OR IGNORE INTO entrants (season_id, number) VALUES (?, ?)", [(race_season_id, int(i[0])) for i in entrant_nums])
+        
+        # create entries if they don't exist
+        existing_entrants = [i[0] for i in cursor.execute(f"SELECT number FROM entrants WHERE season_id = {season_id}").fetchall()]
+        for num in entrant_nums:
+            if num not in existing_entrants:
+                cursor.execute(f"INSERT OR IGNORE INTO entrants (season_id, number) VALUES ({season_id}, {num})")
 
         # get id of drivers
         cursor.execute(f"SELECT id, game_id FROM drivers")

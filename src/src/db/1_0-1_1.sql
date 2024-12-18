@@ -262,6 +262,19 @@ CREATE TABLE IF NOT EXISTS entrants (
     )
 );
 
+CREATE TABLE IF NOT EXISTS entrants (
+    id        INTEGER PRIMARY KEY,
+    season_id INTEGER REFERENCES seasons (id) ON DELETE CASCADE,
+    number    INTEGER,
+    team_id   INTEGER REFERENCES teams (id) ON DELETE SET NULL,
+    UNIQUE (
+        season_id,
+        number,
+        team_id
+    )
+    ON CONFLICT IGNORE
+);
+
 -- alter race_records -> set driver_id as foreign key for drivers (id)
 -- add column entrant_id      INTEGER REFERENCES entrants (id)
 
