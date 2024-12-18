@@ -176,14 +176,14 @@ def adjust_points(series, season):
         drivers = [] # array of dicts with keys ['id', 'game_id']
         with sqlite3.connect(DB_PATH) as con:
             con.row_factory = sqlite3.Row
-            season_id = cursor.execute(f"SELECT id FROM seasons WHERE season_num={season} AND series_id={series}").fetchall()[0][0]
             cursor = con.cursor()
+            season_id = cursor.execute(f"SELECT id FROM seasons WHERE season_num={season} AND series_id={series}").fetchall()[0][0]
             drivers = cursor.execute(
                 f"SELECT DISTINCT id, game_id AS name, IFNULL(adjustment_points, 0) AS points \
                 FROM drivers \
                 LEFT JOIN driver_race_records ON drivers.id = driver_race_records.Driver_ID \
                 LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = driver_race_records.Season_ID \
-                WHERE Series_ID = {series} AND Year = {season_id} ORDER BY game_id ASC"
+                WHERE Series_ID = {series} AND driver_race_records.Season_ID = {season_id} ORDER BY game_id ASC"
                 ).fetchall()
             return render_template('./season/adjust_points.html',drivers=drivers, series=series, season=season)
     
