@@ -172,12 +172,12 @@ def update_points_system(series, season):
         
 @series_page.route("<series>/<season>/adjust_points/", methods=['GET', 'POST'])
 def adjust_points(series, season):
+    season_id = get_season_id(series, season)
     if request.method == 'GET':
         drivers = [] # array of dicts with keys ['id', 'game_id']
         with sqlite3.connect(DB_PATH) as con:
             con.row_factory = sqlite3.Row
             cursor = con.cursor()
-            season_id = cursor.execute(f"SELECT id FROM seasons WHERE season_num={season} AND series_id={series}").fetchall()[0][0]
             drivers = cursor.execute(
                 f"SELECT DISTINCT id, game_id AS name, IFNULL(adjustment_points, 0) AS points \
                 FROM drivers \
@@ -185,21 +185,26 @@ def adjust_points(series, season):
                 LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = driver_race_records.Season_ID \
                 WHERE Series_ID = {series} AND driver_race_records.Season_ID = {season_id} ORDER BY game_id ASC"
                 ).fetchall()
-            return render_template('./season/adjust_points.html',drivers=drivers, series=series, season=season)
+            entrants = cursor.execute(f"SELECT entrants.id, number, IFNULL(adjustment_points, 0) AS points \
+                        FROM entrants LEFT JOIN entrant_manual_points ON entrants.id = entrant_manual_points.entrant_id WHERE entrants.season_id = {season_id}")
+            return render_template('./season/adjust_points.html',drivers=drivers, entrants=entrants, series=series, season=season)
     
     # insert only those who have nonzero total (efficiency... I think? idk)
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
-
-        season_id = cursor.execute(f"SELECT id FROM seasons WHERE season_num={season} AND series_id={series}").fetchall()[0][0]
-
         form = request.form
-        for driver in form.keys():
-            # if int(form[driver]) != 0: # problem: you cannot "reset" adjustment points to 0
-                points = int(form[driver])
-                # this is an upsert clause (if insert violates something -> update)
-                cursor.execute(f"INSERT INTO manual_points VALUES ({int(driver)}, {season_id}, {points}) \
-                                ON CONFLICT (driver_id, season_id) DO UPDATE SET adjustment_points={points}")
+        for input in form.keys():
+                # first, determine if it is driver or entrant -> then query correct table
+                points = int(form[input])
+                if input[0] == 'd':
+                    driver_id = int(input[2:]) # prefix is d-
+                    # this is an upsert clause (if insert violates something -> update)
+                    cursor.execute(f"INSERT INTO manual_points VALUES ({driver_id}, {season_id}, {points}) \
+                                    ON CONFLICT (driver_id, season_id) DO UPDATE SET adjustment_points={points}")
+                else:
+                    entrant_id = int(input[2:]) # prefix is e-
+                    cursor.execute(f"INSERT INTO entrant_manual_points (entrant_id, adjustment_points) VALUES ({entrant_id}, {points}) \
+                                    ON CONFLICT (entrant_id) DO UPDATE SET adjustment_points={points}")
         con.commit()
     return redirect(url_for('series_page.show_series', series=series, season=season))
 

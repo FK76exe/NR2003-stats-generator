@@ -12,7 +12,7 @@
 
         To do so, enter the points adjustment in the box before each driver and then click the Save button.
 
-        <form id="manual_edit" method="post"></form>
+        <form id="manual_points" method="post"></form>
 
         <table>
             <tr>
@@ -29,13 +29,35 @@
                     {{driver['name']}}
                 </td>
                 <td>
-                    <input type="number" name="{{driver['id']}}" size="8" value="{{driver['points']}}" form="manual_edit">
+                    <input type="number" name="d-{{driver['id']}}" size="8" value="{{driver['points']}}" form="manual_points">
                 </td>
             </tr>
             {% endfor %}
         </table>
 
-        <button form="manual_edit">
+        Entrant form
+        <table>
+            <tr>
+                <td>
+                    Entrant
+                </td>
+                <td>
+                    Points
+                </td>
+            </tr>
+            {% for entrant in entrants %}
+            <tr>
+                <td>
+                    {{entrant['number']}}
+                </td>
+                <td>
+                    <input type="number" name="e-{{entrant['id']}}" size="8" value="{{entrant['points']}}" form="manual_points" >
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <button form="manual_points">
             Save
         </button>
     </body>
