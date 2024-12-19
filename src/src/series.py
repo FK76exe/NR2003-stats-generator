@@ -306,3 +306,13 @@ def get_tracks() -> tuple[tuple]:
         cursor = con.cursor()
         cursor.execute("SELECT id, track_name FROM tracks ORDER BY track_name ASC")
         return cursor.fetchall()
+    
+@series_page.route("/<series_id>/<season_num>/entrant_points/")
+def get_entrant_points(series_id, season_num):
+    with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = sqlite3.Row
+        cursor = con.cursor()
+        query = f"SELECT Number, IFNULL(Team_Name, 'no associated team') AS Team, RACE, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [Av. S], [Av. F], DNF, LLF, POINTS FROM entrant_points_view WHERE Series_ID={series_id} AND Year={season_num}"
+        data = cursor.execute(query).fetchall()
+        headers = [i[0] for i in cursor.description]
+        return render_template("./season/entrant_points.html", headers=headers, records=data, series=series_id, season=season_num)

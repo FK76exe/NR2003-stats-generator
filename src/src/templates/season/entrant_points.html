@@ -1,0 +1,54 @@
+{% from "./season/season_nav.html" import season_nav %}
+<!DOCTYPE html>
+<head>
+    <title>Season Standings</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+</head>
+<body>
+    <!-- Navbar -->
+    {{season_nav(series, season)}}
+
+    <table>
+        <tr>
+            <td><b>RANK</b></td>
+            {% for header in headers %}
+                <td>
+                    <b>{{ header }}</b>
+                </td>
+            {% endfor %}
+                <td>
+                    <b>BEHIND</b>
+                </td>
+                <td>
+                    <b>NEXT</b>
+                </td>
+        </tr>
+        {% for row in records %}
+        <tr>
+            <td>
+                {{loop.index}}
+            </td>
+            {% for key in row.keys() %}
+                <td>
+                    {{row[key]}}
+                </td>
+            {% endfor %}
+            {% if loop.index == 1 %}
+                <td>
+                    LEADER
+                </td>
+                <td>
+                    LEADER
+                </td>
+            {% else %}
+                <td>
+                    {{ row['POINTS'] - records[0]['POINTS']}}
+                </td>
+                <td>
+                    {{ row['POINTS'] - records[loop.index0 - 1]['POINTS']}}
+                </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</body>
