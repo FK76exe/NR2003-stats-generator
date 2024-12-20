@@ -18,9 +18,8 @@ def view_teams():
                 return abort(400, f"Please make sure the team name is unique and is not in use by any existing team.")
             return redirect(url_for('team_page.view_teams'))
         
-
 @team_page.route("/<id>", methods=['GET', 'POST', 'DELETE'])
-def single_team(id):
+def single_team(id):    
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         if request.method == 'GET':
@@ -39,6 +38,24 @@ def single_team(id):
             # delete team
             cursor.execute(f"DELETE FROM teams WHERE id = {id}")
             return redirect(url_for('team_page.view_teams'), 303) # HTTP 303 (See Other): redirect to new URL with GET
+
+@team_page.route("/<id>/<series_id>")
+def get_team_result_by_series(id, series_id):
+    with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = sqlite3.Row
+        cursor = con.cursor()
+        query = f"""
+        SELECT Year, Race, Race_ID, Track, Number, Driver_Name as Driver, Finish, Start, Number, Interval, Laps, Led, Points, Status 
+        FROM driver_race_records
+        WHERE Series_ID = {series_id} AND Team_ID = {id}  
+        """
+        records = cursor.execute(query).fetchall()
+        headers = cursor.description
+
+        team_name = cursor.execute(f"SELECT name FROM teams WHERE id={id}").fetchone()[0]
+        series_name = cursor.execute(f"SELECT name FROM series WHERE id={series_id}").fetchone()[0]
+        return render_template("./teams/team_series.html", team_name=team_name, records=records, 
+                               headers = headers, series=series_name, id=id)
 
 def get_team_overview(id: int):
     record_query = f"""
