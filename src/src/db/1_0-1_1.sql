@@ -297,7 +297,7 @@ CREATE TABLE IF NOT EXISTS entrants (
 
 -- note: this is pretty slow but much simpler than points_view -> possible refactor
 -- Maybe I should use an index in one of the underlying columns of driver_race_records?
--- DROP VIEW entrant_points_view;
+DROP VIEW entrant_points_view;
 CREATE VIEW entrant_points_view AS
     SELECT Season_ID,
            Year,
@@ -317,7 +317,7 @@ CREATE VIEW entrant_points_view AS
            ROUND(AVG(Finish), 1) AS [Av. F],
            IFNULL(dnf, 0) AS DNF,
            IFNULL(llf, 0) AS LLF,
-           SUM(Points) + entrant_manual_points.adjustment_points AS POINTS
+           SUM(Points) + IFNULL(entrant_manual_points.adjustment_points, 0) AS POINTS --interestingly, int + null = null
       FROM driver_race_records
            LEFT JOIN
            (
@@ -381,9 +381,11 @@ CREATE VIEW entrant_points_view AS
                 GROUP BY driver_race_records.Entrant_ID
            )
            f ON f.Entrant_ID = driver_race_records.Entrant_ID
-           LEFT JOIN entrant_manual_points ON entrant_manual_points.entrant_id = driver_race_records.Entrant_ID
+           LEFT JOIN
+           entrant_manual_points ON entrant_manual_points.entrant_id = driver_race_records.Entrant_ID
      GROUP BY driver_race_records.Entrant_ID
      ORDER BY POINTS DESC;
+
 
 --why is there so much to do 
 CREATE TABLE IF NOT EXISTS entrant_manual_points (

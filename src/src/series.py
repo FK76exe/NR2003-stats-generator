@@ -271,12 +271,18 @@ def add_weekend(series, season, request):
 
         # create drivers if they don't exist
         cursor.executemany(f"INSERT OR IGNORE INTO drivers (game_id) VALUES (?)", drivers)
+
         
-        # create entries if they don't exist
-        existing_entrants = [i[0] for i in cursor.execute(f"SELECT number FROM entrants WHERE season_id = {season_id}").fetchall()]
+        # create entries if they don't exist; create a map for record entry
+        entrant_dict = {}
+        existing_entrants = cursor.execute(f"SELECT id, number FROM entrants WHERE season_id = {season_id}").fetchall()
+        for entrant in existing_entrants:
+            entrant_dict[entrant[1]] = entrant[0]
+
         for num in entrant_nums:
-            if num not in existing_entrants:
-                cursor.execute(f"INSERT OR IGNORE INTO entrants (season_id, number) VALUES ({season_id}, {num})")
+            if num not in entrant_dict.keys():
+                cursor.execute(f"INSERT INTO entrants (season_id, number) VALUES ({season_id}, {num})")
+                entrant_dict[num] = cursor.lastrowid
 
         # get id of drivers
         cursor.execute(f"SELECT id, game_id FROM drivers")
@@ -295,8 +301,8 @@ def add_weekend(series, season, request):
                     for record in weekend_dict[session]]
                 cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", timed_session_list)
             elif session == 'Race':
-                race_list = [[race_id] + record[:3] + [driver_id_dict[record[3]]] + [str(record[4])] + record[5:8] + [str(record[8])] for record in weekend_dict[session]] 
-                cursor.executemany("INSERT INTO race_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", race_list) 
+                race_list = [[race_id] + record[:3] + [driver_id_dict[record[3]]] + [str(record[4])] + record[5:8] + [str(record[8]), entrant_dict[int(record[2])]] for record in weekend_dict[session]] 
+                cursor.executemany("INSERT INTO race_records (race_id, finish_position, start_position, car_number, driver_id, interval, laps, led, points, finish_status, entrant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", race_list) 
             else: # penalties
                 if len(weekend_dict[session]) > 0:
                     penalty_list = [[race_id] + record for record in weekend_dict[session]]
