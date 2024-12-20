@@ -1,4 +1,4 @@
-{% from "./season/season_nav.html" import season_nav%}
+{% from "./season/season_nav.html" import season_nav %}
 <!DOCTYPE html>
 <head>
     <title>Season Standings</title>
@@ -10,7 +10,8 @@
 
     <table>
         <tr>
-            {% for header in header %}
+            <td><b>RANK</b></td>
+            {% for header in headers %}
                 <td>
                     <b>{{ header }}</b>
                 </td>
@@ -27,13 +28,9 @@
             <td>
                 {{loop.index}}
             </td>
-            {% for value in row %}
+            {% for key in row.keys() %}
                 <td>
-                    {% if loop.first %}
-                        <a href="/driver/{{value}}/{{series}}/{{season}}">{{ value }}</a>
-                    {% else %}
-                        {{ value }}
-                    {% endif %}
+                    {{row[key]}}
                 </td>
             {% endfor %}
             {% if loop.index == 1 %}
@@ -45,10 +42,10 @@
                 </td>
             {% else %}
                 <td>
-                    {{ row[-1] - records[0][-1]}}
+                    {{ row['POINTS'] - records[0]['POINTS']}}
                 </td>
                 <td>
-                    {{ row[-1] - records[loop.index0 - 1][-1]}}
+                    {{ row['POINTS'] - records[loop.index0 - 1]['POINTS']}}
                 </td>
             {% endif %}
         </tr>

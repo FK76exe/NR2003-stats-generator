@@ -183,14 +183,18 @@ CREATE VIEW IF NOT EXISTS points_view AS
 
 DROP VIEW IF EXISTS driver_race_records;
 
-CREATE VIEW IF NOT EXISTS driver_race_records AS
+CREATE VIEW driver_race_records AS -- will be renamed
     SELECT season_num AS Year,
+           race_records.id AS Record_ID,
            race_name AS Race,
            b.season_id AS Season_ID,
            race_records.race_id AS Race_ID,
            track_name AS Track,
            race_records.driver_id AS Driver_ID,
            drivers.game_id AS Driver_Name,
+           race_records.entrant_id AS Entrant_ID,
+           d.team_id AS Team_ID,
+           d.team_name AS Team_Name,
            b.series_id AS Series_ID,
            finish_position AS Finish,
            start_position AS Start,
@@ -232,4 +236,160 @@ CREATE VIEW IF NOT EXISTS driver_race_records AS
                  FROM points_per_race
            )
            c ON race_records.race_id = c.race_id AND 
-                race_records.driver_id = c.driver_id;
+                race_records.driver_id = c.driver_id
+           LEFT JOIN
+           (
+               SELECT entrants.id AS entrant_id,
+                      teams.id AS team_id,
+                      teams.name AS team_name
+                 FROM entrants
+                      LEFT JOIN
+                      teams ON teams.id = entrants.team_id
+           )
+           d ON race_records.entrant_id = d.entrant_id;
+
+
+CREATE TABLE IF NOT EXISTS teams (
+    id   INTEGER PRIMARY KEY
+                 UNIQUE
+                 NOT NULL,
+    name VARCHAR UNIQUE
+                 NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS entries (
+    id    INTEGER    PRIMARY KEY,
+    num    INTEGER,
+    season_id INTEGER REFERENCES seasons(id),
+    team_id    INTEGER REFERENCES teams(id),
+    UNIQUE(num, season_id, team_id) ON CONFLICT IGNORE
+    );
+
+CREATE TABLE IF NOT EXISTS entrants (
+    id        INTEGER PRIMARY KEY,
+    season_id INTEGER REFERENCES seasons (id) ON DELETE CASCADE,
+    number    INTEGER,
+    team_id   INTEGER REFERENCES teams (id) ON DELETE SET NULL,
+    UNIQUE (
+        season_id,
+        number,
+        team_id
+    )
+);
+
+CREATE TABLE IF NOT EXISTS entrants (
+    id        INTEGER PRIMARY KEY,
+    season_id INTEGER REFERENCES seasons (id) ON DELETE CASCADE,
+    number    INTEGER,
+    team_id   INTEGER REFERENCES teams (id) ON DELETE SET NULL,
+    UNIQUE (
+        season_id,
+        number,
+        team_id
+    )
+    ON CONFLICT IGNORE
+);
+
+-- alter race_records -> set driver_id as foreign key for drivers (id)
+-- add column entrant_id      INTEGER REFERENCES entrants (id)
+-- add column id        INTEGER PRIMARY KEY
+-- OK: BETTER APPROACH - FORGET ABOUT PRE-UPDATE USERS; FOCUS ON CURRENT ONE AND THEN CREATE A MIGRATION SCRIPT
+
+-- note: this is pretty slow but much simpler than points_view -> possible refactor
+-- Maybe I should use an index in one of the underlying columns of driver_race_records?
+DROP VIEW entrant_points_view;
+CREATE VIEW entrant_points_view AS
+    SELECT Season_ID,
+           Year,
+           Series_ID,
+           driver_race_records.Entrant_ID,
+           Number,
+           Team_ID,
+           Team_Name,
+           COUNT( * ) AS RACE,
+           IFNULL(wins, 0) AS WIN,
+           IFNULL(Top5s, 0) AS [TOP 5],
+           IFNULL(Top10s, 0) AS [TOP 10],
+           IFNULL(poles, 0) AS POLE,
+           SUM(Laps) AS LAPS,
+           SUM(Led) AS LED,
+           ROUND(AVG(Start), 1) AS [Av. S],
+           ROUND(AVG(Finish), 1) AS [Av. F],
+           IFNULL(dnf, 0) AS DNF,
+           IFNULL(llf, 0) AS LLF,
+           SUM(Points) + IFNULL(entrant_manual_points.adjustment_points, 0) AS POINTS --interestingly, int + null = null
+      FROM driver_race_records
+           LEFT JOIN
+           (
+               SELECT Entrant_ID,
+                      COUNT( * ) AS wins
+                 FROM driver_race_records
+                WHERE Finish = 1
+                GROUP BY Entrant_ID
+           )
+           a ON driver_race_records.Entrant_ID = a.Entrant_ID
+           LEFT JOIN
+           (
+               SELECT Entrant_ID,
+                      COUNT( * ) AS Top5s
+                 FROM driver_race_records
+                WHERE Finish < 6
+                GROUP BY Entrant_ID
+           )
+           b ON driver_race_records.Entrant_ID = b.Entrant_ID
+           LEFT JOIN
+           (
+               SELECT Entrant_ID,
+                      COUNT( * ) AS Top10s
+                 FROM driver_race_records
+                WHERE Finish < 11
+                GROUP BY Entrant_ID
+           )
+           c ON driver_race_records.Entrant_ID = c.Entrant_ID
+           LEFT JOIN
+           (
+               SELECT Entrant_ID,
+                      COUNT( * ) AS poles
+                 FROM driver_race_records
+                WHERE Start = 1
+                GROUP BY Entrant_ID
+           )
+           d ON driver_race_records.Entrant_ID = d.Entrant_ID
+           LEFT JOIN
+           (
+               SELECT Entrant_ID,
+                      COUNT( * ) AS dnf
+                 FROM driver_race_records
+                WHERE Status != 'Running'
+                GROUP BY Entrant_ID
+           )
+           e ON driver_race_records.Entrant_ID = e.Entrant_ID
+           LEFT JOIN
+           (
+               SELECT driver_race_records.Entrant_ID,
+                      COUNT( * ) AS llf
+                 FROM driver_race_records
+                      LEFT JOIN
+                      (
+                          SELECT Race_ID,
+                                 MAX(Laps) AS total_laps
+                            FROM driver_race_records
+                           GROUP BY Race_ID
+                      )
+                      aa ON aa.Race_ID = driver_race_records.Race_ID
+                WHERE driver_race_records.Laps = aa.total_laps
+                GROUP BY driver_race_records.Entrant_ID
+           )
+           f ON f.Entrant_ID = driver_race_records.Entrant_ID
+           LEFT JOIN
+           entrant_manual_points ON entrant_manual_points.entrant_id = driver_race_records.Entrant_ID
+     GROUP BY driver_race_records.Entrant_ID
+     ORDER BY POINTS DESC;
+
+
+--why is there so much to do 
+CREATE TABLE IF NOT EXISTS entrant_manual_points (
+    id                 INTEGER PRIMARY KEY,
+    entrant_id         INTEGER REFERENCES drivers (id) ON DELETE CASCADE UNIQUE,
+    adjustment_points INTEGER DEFAULT (0)
+);
