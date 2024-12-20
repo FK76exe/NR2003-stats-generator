@@ -1,8 +1,11 @@
+{% from "macro.html" import main_navigation %}
 <html>
     <head>
         <title>{{team_name}}</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
     </head>
     <body>
+        {{main_navigation()}}
         <h1>{{team_name}}</h1>
 
         <!-- Insert content here... -->
@@ -15,11 +18,11 @@
 
         <br>
         Note: Upon deletion, all entries the team is linked to will remain but without a link to any team
-        <button onclick="DeleteTrack()">Delete Team</button>
+        <button onclick="DeleteTeam()">Delete Team</button>
     </body>
 </html>
 <script>
-function DeleteTrack() {
+function DeleteTeam() {
     fetch(window.location.href, {method: 'DELETE'})
             .then(response => {
                 if (response.redirected) {

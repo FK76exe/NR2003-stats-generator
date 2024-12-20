@@ -1,8 +1,11 @@
+{% from "macro.html" import main_navigation %}
 <html>
     <head>
         <title>Teams</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
     </head>
     <body>
+        {{main_navigation()}}
         <h1>Teams</h1>
         
         <ul>
