@@ -35,8 +35,22 @@ def list_all_series():
 @series_page.route("/<series_id>/", methods=['GET', 'POST'])
 def series_main(series_id):
     if request.method == 'POST':
-        add_season(series_id, request)
+        # only one form submitted at once - use this to differentiate them
+        if "new_series_name" in request.form.keys():
+            rename_series(series_id, request.form['new_series_name'])
+        else:
+            add_season(series_id, request)
     return get_series_info(series_id)
+
+def rename_series(series_id: int, new_name: str):
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+        try:
+            query = f"UPDATE series SET name='{new_name}' WHERE id={series_id}"
+            cursor.execute(query)
+            return redirect(url_for('series_page.series_main',series_id=series_id), code=302)
+        except sqlite3.IntegrityError:
+            return abort(400, "Please ensure the new name is not in use.")
 
 def get_series_info(series_id):
     """Get information about a series by `series_id`"""

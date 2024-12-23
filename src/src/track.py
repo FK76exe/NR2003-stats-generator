@@ -49,9 +49,12 @@ def delete_track(id):
     # this creates a redirect response object, which must be handled by caller
     return redirect(url_for('track_page.track_main'), code=302)
 
-@track_page.route("/<id>/")
+@track_page.route("/<id>/", methods=['GET', 'POST'])
 def get_track_info(id):
     """Get track information by its id."""
+    if request.method == 'POST':
+        return update_track_info(id, request.form)
+
     track_query = f"SELECT track_name, length_miles, uses_plate, track_type.type FROM tracks LEFT JOIN track_type on tracks.type = track_type.id WHERE length_miles > 0 AND tracks.id = {id}"
     record_query = f"SELECT series_id, series, season_num, name, laps, miles, pole_sitter, winner, speed FROM track_race_overview WHERE id = {id}"
     
@@ -72,6 +75,15 @@ def get_track_info(id):
 
     return render_template("track_overview.html", records = records_by_series, headers = ['Season', 'Race', 'Laps', 'Miles', 'Pole Sitter', 'Winner', 'Speed (mph)'], track_info = track_info)
         
+def update_track_info(id: int, form: dict):
+    query = f"UPDATE tracks SET track_name='{form['track_name']}', length_miles={form['track_length']}, uses_plate={1 if 'uses_plate' in form.keys() else 0}, type={form['track_type']} WHERE id={id}"
+
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+        cursor.execute(query)
+    
+    return redirect(url_for('track_page.get_track_info', id=id), 302)
+
 def group_by_col(records: list):
     """Create a dictionary where each key is mapped to a list of records with key in field of index 0."""
     group_dict = {}

@@ -10,10 +10,43 @@
     <body>
         {{main_navigation()}}
         <h1>{{track_info[0]}}</h1>
-        Track Length (miles): {{track_info[1]}} <br>
-        Plate Track? {{'Yes' if track_info[2] else 'No'}} <br>
-        Track Type: {{track_info[3]}} <br>
-        
+
+        <form method="post">
+            Enter Track Name:
+            <input name="track_name" type="text" required>
+            <br>
+            Track Length (miles):
+            <input name="track_length" type="number" required step="0.001" value="{{track_info[1]}}" min="0.001">
+            <br>
+            Is this a restrictor plate / drafting track?
+            <input name="uses_plate" type="checkbox" value="yes">
+            <br>
+            What type of track is it?
+            <select name="track_type" required>
+                {% if track_info[3] == 'STREET COURSE' %}
+                    <option value="1" selected>Street Course</option>
+                {% else %}
+                    <option value="1">Street Course</option>
+                {% endif %}
+                {% if track_info[3] == 'ROAD COURSE' %}
+                    <option value="2" selected>Road Course</option>
+                {% else %}
+                    <option value="2">Road Course</option>
+                {% endif %}
+                {% if track_info[3] == 'DIRT OVAL' %}
+                    <option value="3" selected>Dirt Oval</option>
+                {% else %}
+                    <option value="3">Dirt Oval</option>
+                {% endif %}s
+                {% if track_info[3] == 'PAVED OVAL' %}
+                    <option value="4" selected>Paved Oval</option>
+                {% else %}
+                    <option value="4">Paved Oval</option>
+                {% endif %}
+            </select>
+            <br><br>
+            <input type="submit" value="Save">
+        </form>
         <hr>
 
         {% for series in records.keys() %}
