@@ -12,9 +12,11 @@
         <tr>
             <td><b>RANK</b></td>
             {% for header in headers %}
+                {% if header != 'Team_ID' %}
                 <td>
                     <b>{{ header }}</b>
                 </td>
+                {% endif %}
             {% endfor %}
                 <td>
                     <b>BEHIND</b>
@@ -29,9 +31,13 @@
                 {{loop.index}}
             </td>
             {% for key in row.keys() %}
-                <td>
-                    {{row[key]}}
-                </td>
+                {% if key != 'Team_ID' %}
+                    {% if key == 'TEAM' and row[key] %}
+                        <td><a href="/team/{{row['Team_ID']}}">{{row[key]}}</a></td>
+                    {% else %}
+                        <td>{{row[key]}}</td>
+                    {% endif %}
+                {% endif %}
             {% endfor %}
             {% if loop.index == 1 %}
                 <td>
