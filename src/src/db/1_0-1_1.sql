@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS manual_points (
 DROP VIEW IF EXISTS points_view;
 
 CREATE VIEW IF NOT EXISTS points_view AS
-    SELECT seasons.season_num AS year, series.name AS series, game_id, IFNULL(races,0) as RACES, IFNULL(wins,0) as WIN, IFNULL(top5, 0) AS "TOP 5", IFNULL(top10, 0) AS "TOP 10", 
+    SELECT seasons.season_num AS year, series.name AS series, drivers.id AS driver_id, game_id, IFNULL(races,0) as RACES, IFNULL(wins,0) as WIN, IFNULL(top5, 0) AS "TOP 5", IFNULL(top10, 0) AS "TOP 10", 
     IFNULL(poles,0) AS POLE, IFNULL(laps,0) AS LAPS, IFNULL(led,0) AS LED, ROUND(avs,1) AS "AV. S", ROUND(avf,1) AS "AV. F", IFNULL(dnf,0) AS "DNF", IFNULL(llf, 0) AS "LLF",
     m.points as POINTS
     FROM drivers, seasons
@@ -297,7 +297,7 @@ CREATE TABLE IF NOT EXISTS entrants (
 
 -- note: this is pretty slow but much simpler than points_view -> possible refactor
 -- Maybe I should use an index in one of the underlying columns of driver_race_records?
-DROP VIEW entrant_points_view;
+DROP VIEW IF EXISTS entrant_points_view;
 CREATE VIEW entrant_points_view AS
     SELECT Season_ID,
            Year,
