@@ -27,7 +27,7 @@ def single_team(id):
             team_name = cursor.execute(f"SELECT name FROM teams WHERE id = {id}").fetchone()[0]
             if team_name:
                 records = get_team_overview(id)
-                return render_template("./teams/teams_single.html", team_name = team_name, records=records)
+                return render_template("./teams/teams_single.html", team_name = team_name, records=records, id=id)
             else:
                 return abort(404, "Team with this id does not exist.")
         elif request.method == 'POST':
@@ -51,9 +51,15 @@ def get_team_result_by_series(id, series_id):
         """
         records = cursor.execute(query).fetchall()
         headers = cursor.description
-
-        team_name = cursor.execute(f"SELECT name FROM teams WHERE id={id}").fetchone()[0]
-        series_name = cursor.execute(f"SELECT name FROM series WHERE id={series_id}").fetchone()[0]
+        
+        try:
+            team_name = cursor.execute(f"SELECT name FROM teams WHERE id={id}").fetchone()[0]
+        except TypeError: # no results
+            return abort(404, "Team not found.")
+        try:
+            series_name = cursor.execute(f"SELECT name FROM series WHERE id={series_id}").fetchone()[0]
+        except TypeError:
+            return abort(404, "Series not found.")
         return render_template("./teams/team_series.html", team_name=team_name, records=records, 
                                headers = headers, series=series_name, id=id)
 

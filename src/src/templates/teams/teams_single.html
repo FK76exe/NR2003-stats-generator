@@ -39,7 +39,11 @@
                  {% for header in records['header'] %}
                     <td><b>
                         {% if header in record.keys() %}
-                        {{ record[header] }}
+                            {% if header == 'RACE' %}
+                                <a href="./{{id}}/{{series}}">{{record[header]}}</a>
+                            {% else %}
+                                {{ record[header] }}
+                            {% endif %}
                         {% else %}
                         {% endif %}
                     </b></td>
