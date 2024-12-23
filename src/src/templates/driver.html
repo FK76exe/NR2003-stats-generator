@@ -10,6 +10,13 @@
         Statistics for {{driver}}
     </h1>
 
+    <form id="rename_driver" method="post">
+        <label>Rename Driver (New name must be unique). Please rename driver in NR2003 in order to have results under this name:</label>
+        <input type="text" name="new_driver_name">
+    </form>
+    <button form="rename_driver">Save</button>
+    <hr>
+
     <!-- Table of stats for each series driver has participated in -->
     {% for series in series_records.keys() %}
         <h2>

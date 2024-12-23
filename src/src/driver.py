@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template, redirect, url_for, request, abort
 from db import DB_PATH
 import sqlite3
 
@@ -14,8 +14,10 @@ def get_drivers():
         drivers = cursor.fetchall()
     return render_template("driver_list.html", drivers=[driver[0] for driver in drivers])
 
-@driver_page.route("/<game_id>/")
+@driver_page.route("/<game_id>/", methods=['GET', 'POST'])
 def driver_overview(game_id):
+    if request.method == 'POST':
+        return rename_driver(game_id, request.form['new_driver_name'])
     data = []
 
     # remember: series have unique names
@@ -49,6 +51,16 @@ ORDER BY YEAR ASC"
             records_by_series[tuple(season_record[:2])].append(season_record[2:])
 
     return render_template('driver.html', header=header, series_records=records_by_series, driver=game_id)
+
+def rename_driver(game_id: str, new_name: str):
+    query = f"UPDATE drivers SET game_id='{new_name}' WHERE game_id='{game_id}'"
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+        try:
+            cursor.execute(query)
+        except:
+            return abort(400, "Please enter a unique name for the driver.")
+    return redirect(url_for('driver_page.driver_overview', game_id=new_name), 302)
 
 @driver_page.route("/<game_id>/<series_id>/<filter>/")
 def driver_results_by_series(game_id: str, series_id: int, filter:str):
