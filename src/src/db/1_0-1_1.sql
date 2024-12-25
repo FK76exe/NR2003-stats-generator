@@ -183,6 +183,7 @@ CREATE VIEW IF NOT EXISTS points_view AS
 
 DROP VIEW IF EXISTS driver_race_records;
 
+CREATE VIEW driver_race_records AS -- will be renamed
 SELECT season_num AS Year,
            race_records.id AS Record_ID,
            race_name AS Race,
