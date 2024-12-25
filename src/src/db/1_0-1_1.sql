@@ -248,7 +248,7 @@ SELECT season_num AS Year,
                       LEFT JOIN
                       teams ON teams.id = entrants.team_id
            )
-           d ON race_records.entrant_id = d.entrant_id
+           d ON race_records.entrant_id = d.entrant_id;
 
 
 CREATE TABLE IF NOT EXISTS teams (
