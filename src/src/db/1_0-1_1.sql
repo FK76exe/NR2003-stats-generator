@@ -395,3 +395,38 @@ CREATE TABLE IF NOT EXISTS entrant_manual_points (
     entrant_id         INTEGER REFERENCES drivers (id) ON DELETE CASCADE UNIQUE,
     adjustment_points INTEGER DEFAULT (0)
 );
+
+DROP VIEW track_aggregate_stats;
+CREATE VIEW track_aggregate_stats AS
+    SELECT Driver_Name,
+           Series_ID,
+           Track_ID,
+           COUNT( * ) AS Starts,
+           SUM(iif(Finish = 1, 1, 0) ) AS Wins,
+           SUM(iif(Finish < 6, 1, 0) ) AS [Top 5],
+           SUM(iif(Finish < 11, 1, 0) ) AS [Top 10],
+           SUM(iif(Start = 1, 1, 0) ) AS Poles,
+           SUM(Laps) AS Laps,
+           ROUND(SUM(Laps * length_miles), 1) AS Miles,
+           SUM(Led) AS Led,
+           ROUND(SUM(Led * length_miles), 1) AS [Miles Led],
+           round(avg(Start), 1) AS [Av. S],
+           ROUND(avg(Finish), 1) AS [Av. F],
+           SUM(iif(Status = 'Running', 0, 1) ) AS DNF,
+           SUM(iif(Laps = Max_Laps, 1, 0) ) AS LLF,
+           SUM(Points) AS Points
+      FROM driver_race_records
+           LEFT JOIN
+           (
+               SELECT Race_ID,
+                      MAX(Laps) AS Max_Laps
+                 FROM driver_race_records
+                GROUP BY Race_ID
+           )
+           a ON driver_race_records.Race_ID = a.Race_ID
+           LEFT JOIN
+           tracks ON Track_ID = tracks.id
+     GROUP BY Driver_Name,
+              Series_ID,
+              Track_ID;
+
