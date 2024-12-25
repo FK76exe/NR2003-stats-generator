@@ -47,7 +47,7 @@ WHERE race_id = {race_id}"""
         series = cursor.execute(f"SELECT name FROM series WHERE id = {season_info[0]}").fetchone()[0]
         race_info.update({'series_id': season_info[0], 'series_name': series, 'season': season_info[1]})
 
-        return render_template("race.html", info=race_info, records=race_records, id=race_id)
+        return render_template("./race/race.html", info=race_info, records=race_records, id=race_id)
 
 @race_page.route("/<race_id>/<filter>/")
 def get_nonrace_records(race_id, filter):
@@ -92,7 +92,7 @@ def get_nonrace_records(race_id, filter):
             record_dict.update({header: record[h]})
         records.append(record_dict)
 
-    return render_template("nonrace_record.html", records=records, session=filter, id=race_id, headers=headers)
+    return render_template("./race/session.html", records=records, session=filter, id=race_id, headers=headers)
 
 @race_page.route("/<race_id>/delete", methods = ['DELETE'])
 def delete_race(race_id):

@@ -184,11 +184,12 @@ CREATE VIEW IF NOT EXISTS points_view AS
 DROP VIEW IF EXISTS driver_race_records;
 
 CREATE VIEW driver_race_records AS -- will be renamed
-    SELECT season_num AS Year,
+SELECT season_num AS Year,
            race_records.id AS Record_ID,
            race_name AS Race,
            b.season_id AS Season_ID,
            race_records.race_id AS Race_ID,
+           track_id AS Track_ID,
            track_name AS Track,
            race_records.driver_id AS Driver_ID,
            drivers.game_id AS Driver_Name,
@@ -214,6 +215,7 @@ CREATE VIEW driver_race_records AS -- will be renamed
                       series_id,
                       races.id,
                       IFNULL(name, track_name) AS race_name,
+                      tracks.id as track_id,
                       track_name
                  FROM races
                       LEFT JOIN
