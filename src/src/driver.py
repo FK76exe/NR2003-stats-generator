@@ -4,8 +4,10 @@ import sqlite3
 
 driver_page = Blueprint("driver_page", __name__, url_prefix='/driver')
 
-@driver_page.route("/")
+@driver_page.route("/", methods=['GET', 'POST'])
 def get_drivers():
+    if request.method == 'POST':
+        return add_driver(request.form['name'])
     drivers = []
     query = "SELECT game_id FROM drivers ORDER BY game_id ASC"
     with sqlite3.connect(DB_PATH) as con:
@@ -13,7 +15,7 @@ def get_drivers():
         cursor.execute(query)
         drivers = cursor.fetchall()
     return render_template("./driver/driver_list.html", drivers=[driver[0] for driver in drivers])
-
+   
 @driver_page.route("/<game_id>/", methods=['GET', 'POST'])
 def driver_overview(game_id):
     if request.method == 'POST':
@@ -51,6 +53,17 @@ ORDER BY YEAR ASC"
             records_by_series[tuple(season_record[:2])].append(season_record[2:])
 
     return render_template("./driver/driver.html", header=header, series_records=records_by_series, driver=game_id)
+
+def add_driver(name: str):
+    try:
+        with sqlite3.connect(DB_PATH) as con:
+            cursor = con.cursor()
+            query = f"INSERT INTO drivers (game_id) VALUES ('{name}')"
+            cursor.execute(query)
+            con.commit()
+        return redirect(url_for('driver_page.driver_overview', game_id=name), 302)
+    except sqlite3.IntegrityError:
+        return abort(400, "Please use a unique name for your new driver.")
 
 def rename_driver(game_id: str, new_name: str):
     query = f"UPDATE drivers SET game_id='{new_name}' WHERE game_id='{game_id}'"

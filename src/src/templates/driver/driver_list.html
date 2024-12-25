@@ -12,6 +12,14 @@
         <h1>
             Drivers
         </h1>
+
+        <form id="add_driver" method="post">
+            <label>Add a new driver. They must have a unique name</label>
+            <input type="text" name='name' required>
+        </form>
+        <button form="add_driver">Add</button>
+        <hr>
+
         {% for driver in drivers %}
             <a href="/driver/{{driver}}">{{driver}}</a>
             <br>
