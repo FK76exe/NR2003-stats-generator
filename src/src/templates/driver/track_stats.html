@@ -1,0 +1,40 @@
+{% from "macro.html" import main_navigation with context %}
+<html>
+    <head>
+        <title>{{season ~ " " ~ series}}</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+
+        {{ main_navigation() }}
+        
+        <h1>
+            {{ driver ~ " Statistics by Track for " ~ series_name}}
+        </h1>
+
+        <a href="/driver/{{driver}}">See overall statistics for {{driver}}</a>
+        <br>
+        <a href="/series/{{series_id}}">Series Page</a>
+
+        <table>
+            <tr>
+                {% for header in headers %}
+                    {% if header != 'Track_ID' %}
+                        <td><b>{{header}}</b></td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% for record in records %}
+            <tr>
+                {% for field in record.keys() %}
+                    {% if field == 'Track' %}
+                    <td><a href="/tracks/{{record['Track_ID']}}">{{record[field]}}</a></td>
+                    {% elif field != 'Track_ID' %}
+                    <td>{{record[field]}}</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>

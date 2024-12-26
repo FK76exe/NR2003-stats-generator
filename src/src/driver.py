@@ -106,7 +106,10 @@ def driver_results_by_season(game_id: str, series_id: int, season_num: int):
     data = []
     series_name = ""
 
-    query = f"SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver], Finish, Start, Number, Interval, Laps, Led, Points, Status FROM driver_race_records WHERE Driver_Name = '{game_id}' AND series_id = {series_id} AND Year = {season_num}"
+    query = f"""SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver],
+      Finish, Start, Number, Interval, Laps, Led, Points, Status FROM 
+      driver_race_records WHERE Driver_Name = '{game_id}' AND 
+      series_id = {series_id} AND Year = {season_num}"""
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
@@ -144,3 +147,29 @@ def delete_driver(game_id: str):
             print(f"ERROR: {str(e)}")
     # this creates a redirect response object, which must be handled by caller
     return redirect(url_for('driver_page.get_drivers'), code=302)
+
+@driver_page.route("/<game_id>/<series_id>/tracks/")
+def get_driver_track_stats_by_series(game_id: str, series_id: int):
+    query = f"""
+        SELECT Track_ID, Track, Starts, Wins, [Top 5], [Top 10], Poles,
+        Laps, Miles, [Miles Led], [Av. S], [Av. F], DNF, LLF, Points
+        FROM track_aggregate_stats
+        WHERE Driver_Name='{game_id}' AND Series_ID={series_id}
+        ORDER BY Track ASC
+        """
+    with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = sqlite3.Row
+        cursor = con.cursor()
+        cursor.execute(query)
+        records = cursor.fetchall()
+        headers = [i[0] for i in cursor.description]
+
+        if len(records) == 0:
+            return abort(404, f"No records exist for {game_id} in series ID {series_id}")
+        return render_template("./driver/track_stats.html",
+                               driver=game_id,
+                               headers=headers,
+                               records=records, 
+                               series_id=series_id, 
+                               series_name=get_series_name_from_id(series_id, cursor)
+                               )

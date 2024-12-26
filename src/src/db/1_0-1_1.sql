@@ -401,6 +401,7 @@ CREATE VIEW track_aggregate_stats AS
     SELECT Driver_Name,
            Series_ID,
            Track_ID,
+           Track,
            COUNT( * ) AS Starts,
            SUM(iif(Finish = 1, 1, 0) ) AS Wins,
            SUM(iif(Finish < 6, 1, 0) ) AS [Top 5],
