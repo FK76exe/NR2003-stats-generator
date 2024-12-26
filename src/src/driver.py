@@ -81,7 +81,7 @@ def driver_results_by_series(game_id: str, series_id: int, filter:str):
     data = []
     filter_dict = {'all': '', 'win': 'AND Finish = 1', 'top5': 'AND Finish <= 5', 'top10': 'AND Finish <=10', 'pole': 'AND Start = 1'}
     
-    query = f"SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver], Finish, Start, Number, Interval, Laps, Led, Points, Status FROM driver_race_records WHERE Driver_Name = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY Year ASC, Race_ID ASC"
+    query = f"SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver], Finish, Start, Number, Interval, Laps, Led, Points, Status FROM race_records_view WHERE Driver_Name = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY Year ASC, Race_ID ASC"
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
@@ -108,7 +108,7 @@ def driver_results_by_season(game_id: str, series_id: int, season_num: int):
 
     query = f"""SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver],
       Finish, Start, Number, Interval, Laps, Led, Points, Status FROM 
-      driver_race_records WHERE Driver_Name = '{game_id}' AND 
+      race_records_view WHERE Driver_Name = '{game_id}' AND 
       series_id = {series_id} AND Year = {season_num}"""
 
     with sqlite3.connect(DB_PATH) as con:

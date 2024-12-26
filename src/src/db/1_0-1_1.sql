@@ -101,9 +101,10 @@ CREATE TABLE IF NOT EXISTS manual_points (
 
 -- TODO add versions schema: https://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
 
+DROP VIEW IF EXISTS race_records_view;
 DROP VIEW IF EXISTS driver_race_records;
 
-CREATE VIEW driver_race_records AS -- will be renamed
+CREATE VIEW race_records_view AS -- will be renamed
 SELECT season_num AS Year,
            race_records.id AS Record_ID,
            race_name AS Race,
@@ -191,17 +192,17 @@ CREATE VIEW IF NOT EXISTS driver_points_view AS
            SUM(iif(Status = 'Running', 0, 1) ) AS DNF,
            SUM(iif(Laps = Max_Laps, 1, 0) ) AS LLF,
            SUM(Points) AS POINTS
-      FROM driver_race_records
+      FROM race_records_view
            LEFT JOIN
            series ON series.id = Series_ID
            LEFT JOIN
            (
                SELECT Race_ID,
                       MAX(Laps) AS Max_Laps
-                 FROM driver_race_records
+                 FROM race_records_view
                 GROUP BY Race_ID
            )
-           a ON driver_race_records.Race_ID = a.Race_ID
+           a ON race_records_view.Race_ID = a.Race_ID
      GROUP BY driver_id,
               Year,
               Series_ID
@@ -254,13 +255,13 @@ CREATE TABLE IF NOT EXISTS entrants (
 -- OK: BETTER APPROACH - FORGET ABOUT PRE-UPDATE USERS; FOCUS ON CURRENT ONE AND THEN CREATE A MIGRATION SCRIPT
 
 -- note: this is pretty slow but much simpler than driver_points_view -> possible refactor
--- Maybe I should use an index in one of the underlying columns of driver_race_records?
+-- Maybe I should use an index in one of the underlying columns of race_records_view?
 DROP VIEW IF EXISTS entrant_points_view;
 CREATE VIEW entrant_points_view AS 
 SELECT Season_ID,
            Year,
            Series_ID,
-           driver_race_records.Entrant_ID,
+           race_records_view.Entrant_ID,
            Number,
            Team_ID,
            Team_Name,
@@ -276,16 +277,16 @@ SELECT Season_ID,
            SUM(iif(Status='Running',0,1)) AS DNF,
            SUM(iif(Laps=Max_Laps,1,0)) AS LLF,
            SUM(Points) + IFNULL(entrant_manual_points.adjustment_points, 0) AS POINTS --interestingly, int + null = null
-      FROM driver_race_records
+      FROM race_records_view
            LEFT JOIN
            (
                SELECT Race_ID, MAX(Laps) as Max_Laps
-               FROM driver_race_records
+               FROM race_records_view
                GROUP BY Race_ID
            )
-           a ON a.Race_ID = driver_race_records.Race_ID
-           LEFT JOIN entrant_manual_points ON entrant_manual_points.entrant_id = driver_race_records.Entrant_ID
-     GROUP BY driver_race_records.Entrant_ID
+           a ON a.Race_ID = race_records_view.Race_ID
+           LEFT JOIN entrant_manual_points ON entrant_manual_points.entrant_id = race_records_view.Entrant_ID
+     GROUP BY race_records_view.Entrant_ID
      ORDER BY POINTS DESC;
 
 
@@ -316,15 +317,15 @@ CREATE VIEW track_aggregate_stats AS
            SUM(iif(Status = 'Running', 0, 1) ) AS DNF,
            SUM(iif(Laps = Max_Laps, 1, 0) ) AS LLF,
            SUM(Points) AS Points
-      FROM driver_race_records
+      FROM race_records_view
            LEFT JOIN
            (
                SELECT Race_ID,
                       MAX(Laps) AS Max_Laps
-                 FROM driver_race_records
+                 FROM race_records_view
                 GROUP BY Race_ID
            )
-           a ON driver_race_records.Race_ID = a.Race_ID
+           a ON race_records_view.Race_ID = a.Race_ID
            LEFT JOIN
            tracks ON Track_ID = tracks.id
      GROUP BY Driver_Name,

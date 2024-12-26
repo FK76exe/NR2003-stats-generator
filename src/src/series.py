@@ -195,9 +195,9 @@ def adjust_points(series, season):
             drivers = cursor.execute(
                 f"SELECT DISTINCT id, game_id AS name, IFNULL(adjustment_points, 0) AS points \
                 FROM drivers \
-                LEFT JOIN driver_race_records ON drivers.id = driver_race_records.Driver_ID \
-                LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = driver_race_records.Season_ID \
-                WHERE Series_ID = {series} AND driver_race_records.Season_ID = {season_id} ORDER BY game_id ASC"
+                LEFT JOIN race_records_view ON drivers.id = race_records_view.Driver_ID \
+                LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = race_records_view.Season_ID \
+                WHERE Series_ID = {series} AND race_records_view.Season_ID = {season_id} ORDER BY game_id ASC"
                 ).fetchall()
             entrants = cursor.execute(f"SELECT entrants.id, number, IFNULL(adjustment_points, 0) AS points \
                         FROM entrants LEFT JOIN entrant_manual_points ON entrants.id = entrant_manual_points.entrant_id WHERE entrants.season_id = {season_id}")
