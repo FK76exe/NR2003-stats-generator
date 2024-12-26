@@ -56,25 +56,47 @@ def get_track_info(id):
         return update_track_info(id, request.form)
 
     track_query = f"SELECT track_name, length_miles, uses_plate, track_type.type FROM tracks LEFT JOIN track_type on tracks.type = track_type.id WHERE length_miles > 0 AND tracks.id = {id}"
-    record_query = f"SELECT series_id, series, season_num, name, laps, miles, pole_sitter, winner, speed FROM track_race_overview WHERE id = {id}"
+    record_query = f"""
+        SELECT
+    Series_ID, series.name as Series_Name, Year, race_records_view.Race_ID,
+    Race, iif(Finish=1,race_records_view.Driver_Name, NULL) AS [Winner],
+    Interval AS [Race Speed], Laps, ROUND(Laps*c.length_miles, 1) AS Distance,
+    -- THIS combines all strings in a column for a given group... very cool!
+    GROUP_CONCAT(iif(Start=1,race_records_view.Driver_Name, NULL),',') AS [Pole Sitter],
+    b.time AS [Pole Time]
+    FROM race_records_view
+    LEFT JOIN series ON Series_ID = series.id
+    LEFT JOIN (SELECT race_id, time FROM timed_sessions WHERE type=2 AND position=1) b ON b.race_id = race_records_view.Race_ID
+    LEFT JOIN (SELECT id, length_miles FROM tracks) c ON c.id = Track_ID
+    WHERE Track_ID={id}
+    GROUP BY race_records_view.Race_ID
+    ORDER BY Series_ID ASC
+    """
     
     with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = sqlite3.Row
         cursor = con.cursor()
         cursor.execute(track_query)
         track_info = cursor.fetchall()[0]
 
         cursor.execute(record_query)
         data = cursor.fetchall()
+        headers = [i[0] for i in cursor.description[2:]]
+        headers.remove('Race_ID') # we aren't presenting this as a separate column for the user...
 
-    records_by_series = {}
-    for season_record in data:
-        if tuple(season_record[:2]) not in records_by_series.keys():
-            records_by_series[tuple(season_record[:2])] = [season_record[2:]]
-        else:
-            records_by_series[tuple(season_record[:2])].append(season_record[2:])
+        records_by_series = {}
+        for season_record in data:
+            record_dict = dict(season_record)
+            series_id, series_name = record_dict.pop('Series_ID'), record_dict.pop('Series_Name')
+            key = tuple([series_id, series_name])
+            if key not in records_by_series.keys():
+                records_by_series[key] = [record_dict]
+            else:
+                records_by_series[key].append(record_dict)
 
-    return render_template("track_overview.html", records = records_by_series, headers = ['Season', 'Race', 'Laps', 'Miles', 'Pole Sitter', 'Winner', 'Speed (mph)'], track_info = track_info)
-        
+        return render_template("track_overview.html", records = records_by_series, 
+                               headers = headers, track_info = track_info)
+            
 @track_page.route("/<id>/<series_id>/")
 def get_track_stats_by_series(id: int, series_id: int):
     query = f"""

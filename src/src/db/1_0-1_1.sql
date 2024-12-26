@@ -332,3 +332,4 @@ CREATE VIEW track_aggregate_stats AS
               Series_ID,
               Track_ID;
 
+DROP VIEW IF EXISTS track_race_overview;

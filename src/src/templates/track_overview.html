@@ -48,8 +48,8 @@
             <input type="submit" value="Save">
         </form>
         <hr>
-
-        {% for series in records.keys() %}
+        <!-- Series per Table -->
+        {% for series in records %}
             <h2>{{series[1]}}</h2>
             <table>
                 <tr>
@@ -63,19 +63,13 @@
                 </tr>
                 {% for record in records[series] %}
                     <tr>
-                        {% for field in record %}
-                            {% if loop.first %}
-                                <td>
-                                    <a href="/series/{{series[0]}}/{{field}}/">{{field}}</a>
-                                </td>
-                            {% elif loop.index0 >= 4 and loop.index0 <= 5 %}
-                                <td>
-                                    <a href="/driver/{{field}}">{{field}}</a>
-                                </td>
-                            {% else %}
-                                <td>
-                                    {{field}}
-                                </td>
+                        {% for field in record.keys() %}
+                            {% if field == 'Race' %}
+                            <td><a href="/race/{{record['Race_ID']}}">{{record[field]}}</a></td>
+                            {% elif field == 'Winner' or field == 'Pole Sitter' %}
+                            <td><a href="/driver/{{record[field]}}">{{record[field]}}</a></td>
+                            {% elif field != 'Race_ID' %}
+                            <td>{{record[field]}}</td>
                             {% endif %}
                         {% endfor %}
                     </tr>
