@@ -27,7 +27,7 @@ def driver_overview(game_id):
 FROM (SELECT *,RANK() OVER(PARTITION BY series, year ORDER BY points DESC) as RANK from points_view) a \
 LEFT JOIN series ON series.name = a.series \
 where game_id = '{game_id}' \
-ORDER BY YEAR ASC"
+ORDER BY series_id, YEAR ASC"
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
