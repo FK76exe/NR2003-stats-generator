@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS bonus_points (
     PRIMARY KEY (system_id, bonus_condition)
 );
 
--- for points_view to use
+-- for driver_points_view to use
 CREATE VIEW IF NOT EXISTS points_per_race AS
     SELECT seasons.id AS season_id,
            races.id AS race_id,
@@ -98,38 +98,6 @@ CREATE TABLE IF NOT EXISTS manual_points (
         season_id
     )
 );
-
-
--- safe to drop a view since its just an aggregator
-DROP VIEW IF EXISTS points_view;
-
-CREATE VIEW points_view AS
-SELECT 
-    Year AS year, 
-    series.name AS series, 
-    Driver_ID AS driver_id, 
-    Driver_Name AS game_id, 
-    COUNT(*) as RACES, 
-    SUM(iif(Finish=1,1,0)) as WIN, 
-    SUM(iif(Finish<6,1,0)) AS [TOP 5], 
-    SUM(iif(Finish<11,1,0)) AS [TOP 10], 
-    SUM(iif(Start=1,1,0)) AS POLE, 
-    SUM(Laps) AS LAPS, 
-    SUM(Led) AS LED, 
-    ROUND(Start,1) AS [AV. S], 
-    ROUND(Finish,1) AS [AV. F], 
-    SUM(iif(Status='Running',0,1)) AS DNF, 
-    SUM(iif(Laps=Max_Laps,1,0)) AS LLF,
-    SUM(Points) as POINTS
-    FROM driver_race_records
-    LEFT JOIN series ON series.id = Series_ID
-    LEFT JOIN (
-        SELECT Race_ID, MAX(Laps) AS Max_Laps
-        FROM driver_race_records
-        GROUP BY Race_ID        
-    ) a ON driver_race_records.Race_ID = a.Race_ID
-    GROUP BY driver_id, Year, Series_ID
-    ORDER BY points DESC;
 
 -- TODO add versions schema: https://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
 
@@ -202,6 +170,42 @@ SELECT season_num AS Year,
            )
            d ON race_records.entrant_id = d.entrant_id;
 
+-- safe to drop a view since its just an aggregator
+DROP VIEW IF EXISTS points_view;
+drop view if exists driver_points_view;
+
+CREATE VIEW IF NOT EXISTS driver_points_view AS
+    SELECT Year AS year,
+           series.name AS series,
+           Driver_ID AS driver_id,
+           Driver_Name AS game_id,
+           COUNT( * ) AS RACES,
+           SUM(iif(Finish = 1, 1, 0) ) AS WIN,
+           SUM(iif(Finish < 6, 1, 0) ) AS [TOP 5],
+           SUM(iif(Finish < 11, 1, 0) ) AS [TOP 10],
+           SUM(iif(Start = 1, 1, 0) ) AS POLE,
+           SUM(Laps) AS LAPS,
+           SUM(Led) AS LED,
+           ROUND(AVG(Start), 1) AS [AV. S],
+           ROUND(AVG(Finish), 1) AS [AV. F],
+           SUM(iif(Status = 'Running', 0, 1) ) AS DNF,
+           SUM(iif(Laps = Max_Laps, 1, 0) ) AS LLF,
+           SUM(Points) AS POINTS
+      FROM driver_race_records
+           LEFT JOIN
+           series ON series.id = Series_ID
+           LEFT JOIN
+           (
+               SELECT Race_ID,
+                      MAX(Laps) AS Max_Laps
+                 FROM driver_race_records
+                GROUP BY Race_ID
+           )
+           a ON driver_race_records.Race_ID = a.Race_ID
+     GROUP BY driver_id,
+              Year,
+              Series_ID
+     ORDER BY points DESC;
 
 CREATE TABLE IF NOT EXISTS teams (
     id   INTEGER PRIMARY KEY
@@ -249,7 +253,7 @@ CREATE TABLE IF NOT EXISTS entrants (
 -- add column id        INTEGER PRIMARY KEY
 -- OK: BETTER APPROACH - FORGET ABOUT PRE-UPDATE USERS; FOCUS ON CURRENT ONE AND THEN CREATE A MIGRATION SCRIPT
 
--- note: this is pretty slow but much simpler than points_view -> possible refactor
+-- note: this is pretty slow but much simpler than driver_points_view -> possible refactor
 -- Maybe I should use an index in one of the underlying columns of driver_race_records?
 DROP VIEW IF EXISTS entrant_points_view;
 CREATE VIEW entrant_points_view AS 

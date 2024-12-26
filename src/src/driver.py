@@ -24,7 +24,7 @@ def driver_overview(game_id):
 
     # remember: series have unique names
     query = f"SELECT series.id as series_id, series as SERIES, year AS YEAR, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS, RANK \
-FROM (SELECT *,RANK() OVER(PARTITION BY series, year ORDER BY points DESC) as RANK from points_view) a \
+FROM (SELECT *,RANK() OVER(PARTITION BY series, year ORDER BY points DESC) as RANK from driver_points_view) a \
 LEFT JOIN series ON series.name = a.series \
 where game_id = '{game_id}' \
 ORDER BY series_id, YEAR ASC"
@@ -38,8 +38,8 @@ ORDER BY series_id, YEAR ASC"
 
         # get aggregate data as well (use Nones for things that can't be aggregated)
         # || = concat
-        query = f"SELECT series.id as series_id, series AS SERIES, COUNT(*) || ' years', SUM(RACES), SUM(WIN), SUM([TOP 5]), SUM([TOP 10]), SUM(POLE), SUM(LAPS), SUM(LED), '---', '---', SUM(DNF), SUM(LLF), SUM(POINTS), '---' FROM points_view \
-        LEFT JOIN series ON series.name = points_view.series \
+        query = f"SELECT series.id as series_id, series AS SERIES, COUNT(*) || ' years', SUM(RACES), SUM(WIN), SUM([TOP 5]), SUM([TOP 10]), SUM(POLE), SUM(LAPS), SUM(LED), '---', '---', SUM(DNF), SUM(LLF), SUM(POINTS), '---' FROM driver_points_view \
+        LEFT JOIN series ON series.name = driver_points_view.series \
         WHERE game_id = '{game_id}' GROUP BY series"
         cursor.execute(query)
         data += cursor.fetchall()
