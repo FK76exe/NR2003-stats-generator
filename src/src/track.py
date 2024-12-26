@@ -75,6 +75,26 @@ def get_track_info(id):
 
     return render_template("track_overview.html", records = records_by_series, headers = ['Season', 'Race', 'Laps', 'Miles', 'Pole Sitter', 'Winner', 'Speed (mph)'], track_info = track_info)
         
+@track_page.route("/<id>/<series_id>/")
+def get_track_stats_by_series(id: int, series_id: int):
+    query = f"""
+        SELECT Driver_Name AS Driver, Starts, Wins, [Top 5], [Top 10], 
+        Poles, Laps, Led, Miles, [Miles Led], [Av. S], [Av. F],  
+        DNF, LLF, Points
+        FROM track_aggregate_stats
+        WHERE Series_ID={series_id} AND Track_ID={id}
+        ORDER BY driver ASC
+        """
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+        data = cursor.execute(query).fetchall()
+        headers = [h[0] for h in cursor.description]
+
+        track_name_query = f"SELECT track_name FROM tracks WHERE id={id}"
+        track_name = cursor.execute(track_name_query).fetchone()[0]
+
+        return render_template("track_agg_stats.html", data=data, headers=headers, id=id, name=track_name, series_id=series_id)
+
 def update_track_info(id: int, form: dict):
     query = f"UPDATE tracks SET track_name='{form['track_name']}', length_miles={form['track_length']}, uses_plate={1 if 'uses_plate' in form.keys() else 0}, type={form['track_type']} WHERE id={id}"
 
