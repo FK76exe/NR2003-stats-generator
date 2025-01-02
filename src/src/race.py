@@ -19,7 +19,7 @@ def get_race_records(race_id):
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         i = cursor.execute(f"""SELECT Finish, Start, CASE WHEN Number > 1999 THEN '0' || (Number-2000) ELSE Number END AS Number, Driver_Name, Interval, Laps, Led, Points, Status
-FROM driver_race_records
+FROM race_records_view
 WHERE race_id = {race_id}"""
                         ).fetchall()
         keys = [j[0] for j in cursor.description]

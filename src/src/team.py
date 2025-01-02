@@ -46,7 +46,7 @@ def get_team_result_by_series(id, series_id):
         cursor = con.cursor()
         query = f"""
         SELECT Year, Race, Race_ID, Track, Number, Driver_Name as Driver, Finish, Start, Number, Interval, Laps, Led, Points, Status 
-        FROM driver_race_records
+        FROM race_records_view
         WHERE Series_ID = {series_id} AND Team_ID = {id}  
         """
         records = cursor.execute(query).fetchall()

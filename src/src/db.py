@@ -16,12 +16,17 @@ DB_PATH = config.get('General', 'DBPath')
 con = sqlite3.connect(DB_PATH)
 cursor = con.cursor()
 
-# read SQL script into string and execute it
-query = open(path.abspath(path.join(BASE_PATH, 'db/create-tables.sql'))).read()
-query += open(path.abspath(path.join(BASE_PATH, 'db/create-views.sql'))).read()
-query += open(path.abspath(path.join(BASE_PATH, 'db/1_0-1_1.sql'))).read()
+# Check if a table exists
+# If tables are present (schema is made, don't run the script)
+# else: it's a new db, so add tables and sample data
+# problem with 'INSERT OR IGNORE INTO' -> doesn't work for sample data
+schemas_count = int(cursor.execute("SELECT COUNT(*) FROM sqlite_master").fetchone()[0])
 
-cursor.executescript(query)
-con.commit()
+if schemas_count == 0:
+    query = open(path.abspath(path.join(BASE_PATH, 'db/version_1_1_script_full.sql'))).read()
+    query += open(path.abspath(path.join(BASE_PATH, 'db/sample_data_1_1.sql'))).read()
+    cursor.executescript(query)
+    con.commit()
+
 cursor.close()
 con.close()

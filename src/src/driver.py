@@ -24,10 +24,10 @@ def driver_overview(game_id):
 
     # remember: series have unique names
     query = f"SELECT series.id as series_id, series as SERIES, year AS YEAR, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS, RANK \
-FROM (SELECT *,RANK() OVER(PARTITION BY series, year ORDER BY points DESC) as RANK from points_view) a \
+FROM (SELECT *,RANK() OVER(PARTITION BY series, year ORDER BY points DESC) as RANK from driver_points_view) a \
 LEFT JOIN series ON series.name = a.series \
 where game_id = '{game_id}' \
-ORDER BY YEAR ASC"
+ORDER BY series_id, YEAR ASC"
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
@@ -38,8 +38,8 @@ ORDER BY YEAR ASC"
 
         # get aggregate data as well (use Nones for things that can't be aggregated)
         # || = concat
-        query = f"SELECT series.id as series_id, series AS SERIES, COUNT(*) || ' years', SUM(RACES), SUM(WIN), SUM([TOP 5]), SUM([TOP 10]), SUM(POLE), SUM(LAPS), SUM(LED), '---', '---', SUM(DNF), SUM(LLF), SUM(POINTS), '---' FROM points_view \
-        LEFT JOIN series ON series.name = points_view.series \
+        query = f"SELECT series.id as series_id, series AS SERIES, COUNT(*) || ' years', SUM(RACES), SUM(WIN), SUM([TOP 5]), SUM([TOP 10]), SUM(POLE), SUM(LAPS), SUM(LED), '---', '---', SUM(DNF), SUM(LLF), SUM(POINTS), '---' FROM driver_points_view \
+        LEFT JOIN series ON series.name = driver_points_view.series \
         WHERE game_id = '{game_id}' GROUP BY series"
         cursor.execute(query)
         data += cursor.fetchall()
@@ -81,7 +81,7 @@ def driver_results_by_series(game_id: str, series_id: int, filter:str):
     data = []
     filter_dict = {'all': '', 'win': 'AND Finish = 1', 'top5': 'AND Finish <= 5', 'top10': 'AND Finish <=10', 'pole': 'AND Start = 1'}
     
-    query = f"SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver], Finish, Start, Number, Interval, Laps, Led, Points, Status FROM driver_race_records WHERE Driver_Name = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY Year ASC, Race_ID ASC"
+    query = f"SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver], Finish, Start, Number, Interval, Laps, Led, Points, Status FROM race_records_view WHERE Driver_Name = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY Year ASC, Race_ID ASC"
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
@@ -108,7 +108,7 @@ def driver_results_by_season(game_id: str, series_id: int, season_num: int):
 
     query = f"""SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver],
       Finish, Start, Number, Interval, Laps, Led, Points, Status FROM 
-      driver_race_records WHERE Driver_Name = '{game_id}' AND 
+      race_records_view WHERE Driver_Name = '{game_id}' AND 
       series_id = {series_id} AND Year = {season_num}"""
 
     with sqlite3.connect(DB_PATH) as con:

@@ -64,8 +64,8 @@ def get_series_info(series_id):
         cursor = con.cursor()
         cursor.execute(f"SELECT COUNT(*) as Seasons, game_id as Driver, sum(RACES) as Races, sum(WIN) as Wins, sum([TOP 5]) as [Top 5s], sum([TOP 10]) as [Top 10s], \
 sum(POLE) as Poles, sum(LAPS) as Laps, sum(LED) as Led, sum(DNF) as DNFs, sum(LLF) as LLFs, sum(POINTS) as Points \
-from points_view \
-LEFT JOIN series on points_view.series = series.name \
+from driver_points_view \
+LEFT JOIN series on driver_points_view.series = series.name \
 WHERE series.id = {series_id} \
 group by game_id order by points DESC")
         
@@ -78,7 +78,7 @@ LEFT JOIN races ON races.season_id = seasons.id
 LEFT JOIN series ON seasons.series_id = series.id
 LEFT JOIN (
     SELECT year, series, game_id
-    FROM points_view
+    FROM driver_points_view
     GROUP BY year, series
 ) a ON seasons.season_num = a.year AND series.name = a.series
 WHERE series.id = {series_id}
@@ -125,7 +125,7 @@ def show_series(series, season):
         cursor = con.cursor()
         series_name = cursor.execute(f"SELECT name FROM series WHERE id = {series}").fetchall()[0][0]
 
-        query = f"SELECT game_id AS DRIVER, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS FROM points_view WHERE series = '{series_name}' AND year = {escape(season)}"
+        query = f"SELECT game_id AS DRIVER, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS FROM driver_points_view WHERE series = '{series_name}' AND year = {escape(season)}"
         cursor.execute(query)
         header = ["RANK"] + [col[0] for col in cursor.description]
         data = cursor.fetchall()
@@ -195,9 +195,9 @@ def adjust_points(series, season):
             drivers = cursor.execute(
                 f"SELECT DISTINCT id, game_id AS name, IFNULL(adjustment_points, 0) AS points \
                 FROM drivers \
-                LEFT JOIN driver_race_records ON drivers.id = driver_race_records.Driver_ID \
-                LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = driver_race_records.Season_ID \
-                WHERE Series_ID = {series} AND driver_race_records.Season_ID = {season_id} ORDER BY game_id ASC"
+                LEFT JOIN race_records_view ON drivers.id = race_records_view.Driver_ID \
+                LEFT JOIN manual_points ON drivers.id = manual_points.driver_id AND manual_points.season_id = race_records_view.Season_ID \
+                WHERE Series_ID = {series} AND race_records_view.Season_ID = {season_id} ORDER BY game_id ASC"
                 ).fetchall()
             entrants = cursor.execute(f"SELECT entrants.id, number, IFNULL(adjustment_points, 0) AS points \
                         FROM entrants LEFT JOIN entrant_manual_points ON entrants.id = entrant_manual_points.entrant_id WHERE entrants.season_id = {season_id}")
