@@ -24,7 +24,13 @@
             {% for record in data %}
                 <tr>
                     {% for field in record %}
-                    <td>{{field}}</td>
+                    <td>
+                        {% if loop.index == 1 %}
+                        <a href="/driver/{{field}}">{{field}}</a>
+                        {% else %}
+                        {{field}}
+                        {% endif %}
+                    </td>
                     {% endfor %}
                 </tr>
             {% endfor %}

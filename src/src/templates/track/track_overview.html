@@ -64,7 +64,9 @@
                 {% for record in records[series] %}
                     <tr>
                         {% for field in record.keys() %}
-                            {% if field == 'Race' %}
+                            {% if field == 'Year' %}
+                            <td><a href="/series/{{series[0]}}/{{record['Year']}}">{{record[field]}}</a></td>
+                            {% elif field == 'Race' %}
                             <td><a href="/race/{{record['Race_ID']}}">{{record[field]}}</a></td>
                             {% elif field == 'Winner' or field == 'Pole Sitter' %}
                             <td><a href="/driver/{{record[field]}}">{{record[field]}}</a></td>
