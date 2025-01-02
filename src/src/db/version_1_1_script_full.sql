@@ -13,7 +13,7 @@ PRAGMA foreign_keys = off;
 BEGIN TRANSACTION;
 
 -- Table: bonus_point_enums
-CREATE TABLE IF NOT EXISTS bonus_point_enums (
+CREATE TABLE bonus_point_enums (
     id        INTEGER PRIMARY KEY,
     condition VARCHAR UNIQUE
 );
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS bonus_point_enums (
 INSERT OR IGNORE INTO bonus_point_enums (condition) VALUES ('Pole'), ('Lap Led'), ('Most Laps Led');
 
 -- Table: bonus_points
-CREATE TABLE IF NOT EXISTS bonus_points (
+CREATE TABLE bonus_points (
     system_id               REFERENCES point_systems (id) ON DELETE CASCADE,
     bonus_condition         REFERENCES bonus_point_enums (id),
     points          INTEGER DEFAULT 0,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS bonus_points (
 
 
 -- Table: drivers
-CREATE TABLE IF NOT EXISTS drivers (
+CREATE TABLE drivers (
     id      INTEGER PRIMARY KEY,
     game_id VARCHAR UNIQUE
                     NOT NULL
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS drivers (
 
 
 -- Table: entrant_manual_points
-CREATE TABLE IF NOT EXISTS entrant_manual_points (
+CREATE TABLE entrant_manual_points (
     id                INTEGER PRIMARY KEY,
     entrant_id        INTEGER REFERENCES drivers (id) ON DELETE CASCADE
                               UNIQUE,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS entrant_manual_points (
 
 
 -- Table: entrants
-CREATE TABLE IF NOT EXISTS entrants (
+CREATE TABLE entrants (
     id        INTEGER PRIMARY KEY,
     season_id INTEGER REFERENCES seasons (id) ON DELETE CASCADE,
     number    INTEGER,
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS entrants (
 
 
 -- Table: entries
-CREATE TABLE IF NOT EXISTS entries (
+CREATE TABLE entries (
     id        INTEGER PRIMARY KEY,
     num       INTEGER,
     season_id INTEGER REFERENCES seasons (id),
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS entries (
 
 
 -- Table: manual_points
-CREATE TABLE IF NOT EXISTS manual_points (
+CREATE TABLE manual_points (
     driver_id         INTEGER REFERENCES drivers (id) ON DELETE CASCADE,
     season_id         INTEGER REFERENCES seasons (id) ON DELETE CASCADE,
     adjustment_points INTEGER DEFAULT (0),
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS manual_points (
 
 
 -- Table: penalties
-CREATE TABLE IF NOT EXISTS penalties (
+CREATE TABLE penalties (
     id         INTEGER PRIMARY KEY,
     race_id    INTEGER REFERENCES races (id) ON DELETE CASCADE,
     lap        INTEGER,
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS penalties (
 
 
 -- Table: point_system_scores
-CREATE TABLE IF NOT EXISTS point_system_scores (
+CREATE TABLE point_system_scores (
     system_id         REFERENCES point_systems (id) ON DELETE CASCADE,
     position  INTEGER,
     points    INTEGER DEFAULT 0,
@@ -115,14 +115,14 @@ CREATE TABLE IF NOT EXISTS point_system_scores (
 
 
 -- Table: point_systems
-CREATE TABLE IF NOT EXISTS point_systems (
+CREATE TABLE point_systems (
     id   INTEGER PRIMARY KEY,
     name VARCHAR UNIQUE
 );
 
 
 -- Table: race_records
-CREATE TABLE IF NOT EXISTS race_records (
+CREATE TABLE race_records (
     id              INTEGER PRIMARY KEY,
     race_id         INTEGER REFERENCES races (id) ON DELETE CASCADE,
     finish_position INTEGER,
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS race_records (
 
 
 -- Table: races
-CREATE TABLE IF NOT EXISTS races (
+CREATE TABLE races (
     id        INTEGER PRIMARY KEY
                       UNIQUE
                       NOT NULL,
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS races (
 
 
 -- Table: seasons
-CREATE TABLE IF NOT EXISTS seasons (
+CREATE TABLE seasons (
     id               INTEGER PRIMARY KEY,
     series_id        INTEGER REFERENCES series (id) ON DELETE CASCADE,
     season_num       INTEGER NOT NULL,
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS seasons (
 
 
 -- Table: series
-CREATE TABLE IF NOT EXISTS series (
+CREATE TABLE series (
     id   INTEGER PRIMARY KEY,
     name VARCHAR NOT NULL
                  UNIQUE
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS series (
 
 
 -- Table: teams
-CREATE TABLE IF NOT EXISTS teams (
+CREATE TABLE teams (
     id   INTEGER PRIMARY KEY
                  UNIQUE
                  NOT NULL,
@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS teams (
 
 
 -- Table: timed_session_type
-CREATE TABLE IF NOT EXISTS timed_session_type (
+CREATE TABLE timed_session_type (
     id      INTEGER PRIMARY KEY,
     session         UNIQUE
 );
@@ -193,7 +193,7 @@ CREATE TABLE IF NOT EXISTS timed_session_type (
 INSERT OR IGNORE INTO timed_session_type (session) VALUES ('Practice'), ('Qualifying'), ('Happy Hour');
 
 -- Table: timed_sessions
-CREATE TABLE IF NOT EXISTS timed_sessions (
+CREATE TABLE timed_sessions (
     id        INTEGER PRIMARY KEY,
     race_id   INTEGER REFERENCES races (id) ON DELETE CASCADE,
     type      INTEGER REFERENCES timed_session_type (id),
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS timed_sessions (
 
 
 -- Table: track_type
-CREATE TABLE IF NOT EXISTS track_type (
+CREATE TABLE track_type (
     id   INTEGER PRIMARY KEY,
     type STRING  UNIQUE
 );
@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS track_type (
 INSERT OR IGNORE INTO track_type (type) VALUES ('STREET COURSE'), ('ROAD COURSE'), ('DIRT OVAL'), ('PAVED OVAL');
 
 -- Table: tracks
-CREATE TABLE IF NOT EXISTS tracks (
+CREATE TABLE tracks (
     id           INTEGER PRIMARY KEY
                          NOT NULL,
     track_name   VARCHAR NOT NULL,
@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS tracks (
 
 
 -- View: driver_points_view
-CREATE VIEW IF NOT EXISTS driver_points_view AS
+CREATE VIEW driver_points_view AS
     SELECT Year AS year,
            series.name AS series,
            Driver_ID AS driver_id,
@@ -259,7 +259,7 @@ CREATE VIEW IF NOT EXISTS driver_points_view AS
 
 
 -- View: entrant_points_view
-CREATE VIEW IF NOT EXISTS entrant_points_view AS
+CREATE VIEW entrant_points_view AS
     SELECT Season_ID,
            Year,
            Series_ID,
@@ -295,7 +295,7 @@ CREATE VIEW IF NOT EXISTS entrant_points_view AS
 
 
 -- View: points_per_race
-CREATE VIEW IF NOT EXISTS points_per_race AS
+CREATE VIEW points_per_race AS
     SELECT seasons.id AS season_id,
            races.id AS race_id,
            driver_id,
@@ -356,7 +356,7 @@ CREATE VIEW IF NOT EXISTS points_per_race AS
 
 
 -- View: race_records_view
-CREATE VIEW IF NOT EXISTS race_records_view AS-- will be renamed
+CREATE VIEW race_records_view AS-- will be renamed
     SELECT season_num AS Year,
            race_records.id AS Record_ID,
            race_name AS Race,
@@ -425,7 +425,7 @@ CREATE VIEW IF NOT EXISTS race_records_view AS-- will be renamed
 
 
 -- View: track_aggregate_stats
-CREATE VIEW IF NOT EXISTS track_aggregate_stats AS
+CREATE VIEW track_aggregate_stats AS
     SELECT Driver_Name,
            Series_ID,
            Track_ID,

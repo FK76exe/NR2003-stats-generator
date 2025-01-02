@@ -1,9 +1,9 @@
 -- Sample data to get the user started immediately
 
 -- Latford points system
-INSERT OR IGNORE INTO point_systems (name) VALUES ('Latford System');
+INSERT INTO point_systems (name) VALUES ('Latford System');
 
-INSERT OR IGNORE INTO point_system_scores
+INSERT INTO point_system_scores
 VALUES
 (1, 1, 175),
 (1, 2, 170),
@@ -49,13 +49,13 @@ VALUES
 (1, 42, 37),
 (1, 43, 34);
 
-INSERT OR IGNORE INTO bonus_points (system_id, bonus_condition, points)
+INSERT INTO bonus_points (system_id, bonus_condition, points)
 VALUES
 (1, 1, 0),
 (1, 2, 5),
 (1, 3, 5);
 
-INSERT OR IGNORE INTO tracks 
+INSERT INTO tracks 
 VALUES
 (1, 'Daytona', 2.5, 1, 4),
 (2, 'Rockingham', 1.017, 0, 4),
