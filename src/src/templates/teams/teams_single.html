@@ -28,7 +28,13 @@
              {% for record in records['ind'][series] %}
              <tr>
                 {% for key in record.keys()[1:] %}
-                <td>{{record[key]}}</td>
+                <td>
+                    {% if key == 'RACE' %}
+                    <a href="./{{id}}/{{series}}/{{record['Year']}}/{{record['Number']}}">{{record[key]}}</a>
+                    {% else %}
+                    {{record[key]}}
+                    {% endif %}
+                </td>
                 {% endfor %}
              </tr>
              {% endfor %}

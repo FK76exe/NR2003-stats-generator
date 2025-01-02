@@ -9,7 +9,7 @@
         {{ main_navigation() }}
         
         <h1>
-            {{team_name ~ "'s Results for " ~ series}}
+            {{team_name ~ "'s Results for " ~ series}}  {{"- Season " ~ season if season is not none}} {{"- #" ~ number if number is not none}}
         </h1>
 
         <a href="/team/{{id}}">See overall statistics for {{team_name}}</a>
@@ -30,6 +30,8 @@
                         <td style="color: red;">{{record[field]}}</td>
                     {% elif field == 'Race'%}
                         <td><a href="/race/{{record['Race_ID']}}">{{record[field]}}</a></td>
+                    {% elif field == 'Driver' %}
+                        <td><a href="/driver/{{record['Driver']}}">{{record[field]}}</a></td>
                     {% elif field != 'Race_ID' %}
                         <td>{{record[field]}}</td>
                     {% endif %}

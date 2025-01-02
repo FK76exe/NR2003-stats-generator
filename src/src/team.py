@@ -40,17 +40,32 @@ def single_team(id):
             return redirect(url_for('team_page.view_teams'), 303) # HTTP 303 (See Other): redirect to new URL with GET
 
 @team_page.route("/<id>/<series_id>")
-def get_team_result_by_series(id, series_id):
+@team_page.route("/<id>/<series_id>/<season>") # .. why didn't I learn this sooner... thanks again SO!
+@team_page.route("/<id>/<series_id>/<season>/<number>")
+def get_team_results_by_series(id, series_id, season=None, number=None):
+
+    query = f"""
+    SELECT Year, Race, Race_ID, Track, Number, Driver_Name AS Driver, Finish, 
+            Start, Number, Interval, Laps, Led, Points, Status 
+    FROM race_records_view
+    WHERE Series_ID = {series_id} AND Team_ID = {id}  
+    """
+    if season != None: # add year query and remove Year from selection
+        query.replace("Year, ","")
+        query += f" AND Year={season} "
+    if number != None:
+        query.replace("Number, ", "")
+        query += f"AND Number={number}"
+
     with sqlite3.connect(DB_PATH) as con:
         con.row_factory = sqlite3.Row
         cursor = con.cursor()
-        query = f"""
-        SELECT Year, Race, Race_ID, Track, Number, Driver_Name as Driver, Finish, Start, Number, Interval, Laps, Led, Points, Status 
-        FROM race_records_view
-        WHERE Series_ID = {series_id} AND Team_ID = {id}  
-        """
+
         records = cursor.execute(query).fetchall()
         headers = cursor.description
+
+        if len(records) == 0:
+            return abort(404, "No records found!")
         
         try:
             team_name = cursor.execute(f"SELECT name FROM teams WHERE id={id}").fetchone()[0]
@@ -60,8 +75,9 @@ def get_team_result_by_series(id, series_id):
             series_name = cursor.execute(f"SELECT name FROM series WHERE id={series_id}").fetchone()[0]
         except TypeError:
             return abort(404, "Series not found.")
-        return render_template("./teams/team_series.html", team_name=team_name, records=records, 
-                               headers = headers, series=series_name, id=id)
+        return render_template("./teams/team_results.html", team_name=team_name,
+                                records=records, headers = headers, series=series_name, 
+                                id=id, season=season, number=number)
 
 def get_team_overview(id: int):
     record_query = f"""
