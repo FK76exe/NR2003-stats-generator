@@ -30,7 +30,7 @@ def list_all_series():
         cursor = con.cursor()
         cursor.execute(f"SELECT * FROM series")
         data = cursor.fetchall()
-    return render_template("series_list.html", series_list = data)
+    return render_template("./series/series_list.html", series_list = data)
 
 @series_page.route("/<series_id>/", methods=['GET', 'POST'])
 def series_main(series_id):
@@ -89,7 +89,7 @@ GROUP BY season_num
         series_name = cursor.execute(f"SELECT name FROM series WHERE id = {series_id}").fetchall()[0][0]
         systems = cursor.execute("SELECT id, name FROM point_systems").fetchall()
     
-    return render_template('series.html', driver_headers = driver_desc, driver_stats = driver_stats,
+    return render_template('./series/series.html', driver_headers = driver_desc, driver_stats = driver_stats,
                            season_headers = season_desc, season_stats = season_stats, series = series_name, id = series_id, systems=systems)
 
 @series_page.route("/<series>/<season>/", methods=['GET', 'POST'])
