@@ -3,7 +3,8 @@
 import os
 
 a = Analysis(
-    ['src/main.py', 'src/db.py', 'src/driver.py', 'src/file_scraper.py', 'src/race.py', 'src/series.py', 'src/track.py'],
+    ['src/db.py', 'src/driver.py', 'src/file_scraper.py', 'src/main.py', 
+    'src/points.py','src/race.py', 'src/series.py', 'src/team.py', 'src/track.py'],
     pathex=[],
     binaries=[],
     datas=[
@@ -26,7 +27,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='NR2003 Stats Generator',
+    name='NR2003 Stats Generator 1.1',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

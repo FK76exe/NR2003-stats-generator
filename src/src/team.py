@@ -9,11 +9,12 @@ def view_teams():
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         if request.method == 'GET':
-            teams = cursor.execute("SELECT * FROM teams")
+            teams = cursor.execute("SELECT * FROM teams ORDER BY name")
             return render_template("./teams/teams_main.html", teams=teams)
         else:
             try:
-                cursor.execute(f"""INSERT INTO teams (name) VALUES ("{request.form['name']}")""")
+                team_name = request.form['name'].replace("'","`")
+                cursor.execute(f"""INSERT INTO teams (name) VALUES ("{team_name}")""")
             except sqlite3.OperationalError:
                 return abort(400, f"Please make sure the team name is unique and is not in use by any existing team.")
             return redirect(url_for('team_page.view_teams'))
@@ -32,7 +33,8 @@ def single_team(id):
                 return abort(404, "Team with this id does not exist.")
         elif request.method == 'POST':
             # update team name
-            cursor.execute(f"UPDATE teams SET name='{request.form['name']}' WHERE id = {id}")
+            team_name = request.form['name'].replace("'","`")
+            cursor.execute(f"UPDATE teams SET name='{team_name}' WHERE id = {id}")
             return redirect(url_for('team_page.single_team', id=id))
         else:
             # delete team
@@ -40,17 +42,32 @@ def single_team(id):
             return redirect(url_for('team_page.view_teams'), 303) # HTTP 303 (See Other): redirect to new URL with GET
 
 @team_page.route("/<id>/<series_id>")
-def get_team_result_by_series(id, series_id):
+@team_page.route("/<id>/<series_id>/<season>") # .. why didn't I learn this sooner... thanks again SO!
+@team_page.route("/<id>/<series_id>/<season>/<number>")
+def get_team_results_by_series(id, series_id, season=None, number=None):
+
+    query = f"""
+    SELECT Year, Race, Race_ID, Track, Number, Driver_Name AS Driver, Finish, 
+            Start, Number, Interval, Laps, Led, Points, Status 
+    FROM race_records_view
+    WHERE Series_ID = {series_id} AND Team_ID = {id}  
+    """
+    if season != None: # add year query and remove Year from selection
+        query.replace("Year, ","")
+        query += f" AND Year={season} "
+    if number != None:
+        query.replace("Number, ", "")
+        query += f"AND Number={number}"
+
     with sqlite3.connect(DB_PATH) as con:
         con.row_factory = sqlite3.Row
         cursor = con.cursor()
-        query = f"""
-        SELECT Year, Race, Race_ID, Track, Number, Driver_Name as Driver, Finish, Start, Number, Interval, Laps, Led, Points, Status 
-        FROM race_records_view
-        WHERE Series_ID = {series_id} AND Team_ID = {id}  
-        """
+
         records = cursor.execute(query).fetchall()
         headers = cursor.description
+
+        if len(records) == 0:
+            return abort(404, "No records found!")
         
         try:
             team_name = cursor.execute(f"SELECT name FROM teams WHERE id={id}").fetchone()[0]
@@ -60,8 +77,9 @@ def get_team_result_by_series(id, series_id):
             series_name = cursor.execute(f"SELECT name FROM series WHERE id={series_id}").fetchone()[0]
         except TypeError:
             return abort(404, "Series not found.")
-        return render_template("./teams/team_series.html", team_name=team_name, records=records, 
-                               headers = headers, series=series_name, id=id)
+        return render_template("./teams/team_results.html", team_name=team_name,
+                                records=records, headers = headers, series=series_name, 
+                                id=id, season=season, number=number)
 
 def get_team_overview(id: int):
     record_query = f"""

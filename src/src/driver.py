@@ -55,6 +55,7 @@ ORDER BY series_id, YEAR ASC"
     return render_template("./driver/driver.html", header=header, series_records=records_by_series, driver=game_id)
 
 def add_driver(name: str):
+    name = name.replace("'", "`")
     try:
         with sqlite3.connect(DB_PATH) as con:
             cursor = con.cursor()
@@ -66,6 +67,7 @@ def add_driver(name: str):
         return abort(400, "Please use a unique name for your new driver.")
 
 def rename_driver(game_id: str, new_name: str):
+    new_name = new_name.replace("'", "`")
     query = f"UPDATE drivers SET game_id='{new_name}' WHERE game_id='{game_id}'"
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
@@ -81,7 +83,9 @@ def driver_results_by_series(game_id: str, series_id: int, filter:str):
     data = []
     filter_dict = {'all': '', 'win': 'AND Finish = 1', 'top5': 'AND Finish <= 5', 'top10': 'AND Finish <=10', 'pole': 'AND Start = 1'}
     
-    query = f"SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver], Finish, Start, Number, Interval, Laps, Led, Points, Status FROM race_records_view WHERE Driver_Name = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY Year ASC, Race_ID ASC"
+    query = f"""SELECT Year, Race, Race_ID, Track_ID, Track, Finish, Start, Number, Team_ID, Team_Name as Team, Interval, Laps, Led, Points, Status 
+    FROM race_records_view WHERE Driver_Name = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} 
+    ORDER BY Year ASC, Race_ID ASC"""
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
@@ -106,8 +110,8 @@ def driver_results_by_season(game_id: str, series_id: int, season_num: int):
     data = []
     series_name = ""
 
-    query = f"""SELECT Year, Race, Race_ID, Track, Driver_Name AS [Driver],
-      Finish, Start, Number, Interval, Laps, Led, Points, Status FROM 
+    query = f"""SELECT Race, Race_ID, Track_ID, Track,
+      Finish, Start, Number, Team_ID, Team_Name as Team, Interval, Laps, Led, Points, Status FROM 
       race_records_view WHERE Driver_Name = '{game_id}' AND 
       series_id = {series_id} AND Year = {season_num}"""
 

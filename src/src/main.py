@@ -6,6 +6,7 @@ from driver import driver_page
 from race import race_page
 from points import points_page
 from team import team_page
+from db import DB_PATH
 import webbrowser
 
 app = Flask(__name__)
@@ -18,7 +19,7 @@ app.register_blueprint(team_page)
 
 @app.route("/")
 def home():
-    return render_template('home.html')
+    return render_template('home.html', DB=DB_PATH)
 
 if __name__ == "__main__":
     webbrowser.open("http://127.0.0.1:5000", 2)

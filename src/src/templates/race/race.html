@@ -17,7 +17,7 @@
             Series: <a href="/series/{{info['series_id']}}/">{{info['series_name']}}</a> <br>
             Season: <a href="/series/{{info['series_id']}}/{{info['season']}}/">{{info['season']}}</a> <br>
 
-            Track: {{info['track_name']}} <br>
+            Track: <a href="/tracks/{{info['track_id']}}">{{info['track_name']}}</a><br>
             Length: {{info['track_length']}} miles <br>
             Type: {{info['track_type']}} <br>
             Is plate? {{info['track_plate']}} <br>
@@ -29,6 +29,7 @@
                 <td>Start</td>
                 <td>#</td>
                 <td>Driver</td>
+                <td>Team</td>
                 <td>Interval</td>
                 <td>Laps</td>
                 <td>Led</td>
@@ -41,6 +42,7 @@
                 <td>{{record['Start']}}</td>
                 <td>{{record['Number']}}</td>
                 <td><a href="/driver/{{record['Driver_Name']}}/">{{record['Driver_Name']}}</a></td>
+                <td><a href="/team/{{record['Team_ID']}}">{{record['Team_Name']}}</a></td>
                 <td>{{record['Interval']}}</td>
                 <td>{{record['Laps']}}</td>
                 <td>{{record['Led']}}</td>

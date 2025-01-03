@@ -227,7 +227,7 @@ CREATE TABLE tracks (
 CREATE VIEW driver_points_view AS
     SELECT Year AS year,
            series.name AS series,
-           Driver_ID AS driver_id,
+           race_records_view.Driver_ID AS driver_id,
            Driver_Name AS game_id,
            COUNT( * ) AS RACES,
            SUM(iif(Finish = 1, 1, 0) ) AS WIN,
@@ -240,7 +240,7 @@ CREATE VIEW driver_points_view AS
            ROUND(AVG(Finish), 1) AS [AV. F],
            SUM(iif(Status = 'Running', 0, 1) ) AS DNF,
            SUM(iif(Laps = Max_Laps, 1, 0) ) AS LLF,
-           SUM(Points) AS POINTS
+           SUM(Points) + IFNULL(manual_points.adjustment_points, 0) AS POINTS
       FROM race_records_view
            LEFT JOIN
            series ON series.id = Series_ID
@@ -252,7 +252,9 @@ CREATE VIEW driver_points_view AS
                 GROUP BY Race_ID
            )
            a ON race_records_view.Race_ID = a.Race_ID
-     GROUP BY driver_id,
+           LEFT JOIN
+           manual_points ON manual_points.driver_id = race_records_view.Driver_ID
+     GROUP BY race_records_view.Driver_ID,
               Year,
               Series_ID
      ORDER BY points DESC;

@@ -23,7 +23,8 @@ def add_system():
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         # create points system structure
-        cursor.execute(f"INSERT INTO point_systems (name) VALUES ('{form['name']}')")
+        system_name = str(form['name']).replace("'","`")
+        cursor.execute(f"INSERT INTO point_systems (name) VALUES ('{system_name}')")
         system_id = cursor.lastrowid
 
         # add finishing points
@@ -68,8 +69,8 @@ def view_system(id: int):
 def update_system(id: int, form):
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
-
-        cursor.execute(f"UPDATE point_systems SET name = '{form['name']}' WHERE id = {id}")
+        system_name = str(form['name']).replace("'","`")
+        cursor.execute(f"UPDATE point_systems SET name = '{system_name}' WHERE id = {id}")
 
         updated_finish_points = [[int(form[str(i)]), i] for i in range(1,44)]
         cursor.executemany(f"UPDATE point_system_scores SET points = ? WHERE system_id = {id} AND position = ?", updated_finish_points)

@@ -17,7 +17,7 @@
         <table>
             <tr>
                 {% for header in headers %}
-                    {% if header != 'Race_ID' %}
+                    {% if header not in ['Race_ID', 'Track_ID', 'Team_ID'] %}
                         <td><b>{{header}}</b></td>
                     {% endif %}
                 {% endfor %}
@@ -29,7 +29,11 @@
                         <td style="color: red;">{{record[field]}}</td>
                     {% elif field == 'Race'%}
                         <td><a href="/race/{{record['Race_ID']}}">{{record[field]}}</a></td>
-                    {% elif field != 'Race_ID' %}
+                    {% elif field == 'Team' %}
+                        <td><a href="/team/{{record['Team_ID']}}">{{record[field]}}</a></td>
+                    {% elif field == 'Track' %}
+                        <td><a href="/tracks/{{record['Track_ID']}}">{{record[field]}}</a></td>
+                    {% elif field not in ['Race_ID', 'Track_ID', 'Team_ID'] %}
                         <td>{{record[field]}}</td>
                     {% endif %}
                 {% endfor %}
