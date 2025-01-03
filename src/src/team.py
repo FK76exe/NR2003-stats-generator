@@ -9,7 +9,7 @@ def view_teams():
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         if request.method == 'GET':
-            teams = cursor.execute("SELECT * FROM teams")
+            teams = cursor.execute("SELECT * FROM teams ORDER BY name")
             return render_template("./teams/teams_main.html", teams=teams)
         else:
             try:
