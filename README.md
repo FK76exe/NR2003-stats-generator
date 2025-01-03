@@ -5,8 +5,12 @@ NR2003 Stats Generator (NRSG) is a locally deployable web application that manag
 ## Features
 - Organize races into entire series with seasons
 - View race information such as results, practice, qualifying, happy hour, and penalties
-- View track information and see all races ran on it
-- View driver statistics, organized and aggregated by series and season
+- Create, view, update, and delete the following:
+  - Drivers
+  - Teams
+  - Point Systems
+  - Series
+  - Seasons
 
 ## Some Screenshots
 ![Screenshot depicting Driver page](./img/driver.PNG)
@@ -37,12 +41,12 @@ Requirements
 
 1. Create a virtual environment with venv
 2. Enter virtual environment
-3. Install packages in [requirements.txt](./requirements.txt) with command `pip install -r requirements.txt` $^1$
+3. Install packages in [requirements.txt](./requirements.txt) with command `pip install -r requirements.txt`
 4. Go to [./src](./src/) and run `pyinstaller ./options.spec`
    
 The generated executable should be present in a dist/options folder generated after running the pyinstaller command.
 
-$^1$ https://www.freecodecamp.org/news/python-requirementstxt-explained/
+Copy the config.ini file [here](./src/config.ini) and paste it into the generated folder.
 
 ## Configuration
 There is a configuration file called `config.ini`.
@@ -52,3 +56,7 @@ You can adjust it to a path of a database file you wish to create or connect to.
 If you enter a path to a database file that does not exist, NRSG will create it there.
 
 If you are following the BIY method, you **must** copy the config.ini file [here](./src/config.ini) and paste it into the folder containing the executable at the same level.
+
+Note: **DO NOT DEPLOY** onto a live server! This application was not designed for deployment as the SQL queries in the backend are stored as parameterized strings, making it prone to SQL injection attacks.
+
+*Documentation/FAQ will be created at a later date*
