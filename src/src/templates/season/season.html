@@ -1,4 +1,6 @@
-{% from "macro.html" import navLink, initial_deletion, confirm_deletion, main_navigation with context %}
+{% from "macro.html" import navLink, initial_deletion, confirm_deletion with context %}
+{% from "./season/season_nav.html" import season_nav %}
+
 <html>
     <head>
         <title>
@@ -8,10 +10,7 @@
     </head>
     <body>
         <!-- Navbar -->
-        {{ main_navigation() }}
-        <ul class="nav">
-            {{ navLink('Points', "./points") }}
-        </ul>
+        {{ season_nav(series, season) }}
 
         <h1>
             {{ series_name ~ ", Season " ~ season ~ " Schedule"}}

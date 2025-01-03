@@ -1,0 +1,77 @@
+{% from "macro.html" import main_navigation %}
+<html>
+    <head>
+        <title>{{team_name}}</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+        {{main_navigation()}}
+        <h1>{{team_name}}</h1>
+
+        <form id="update_team" method="post">
+            <label>Update Team Name (It must be unique):</label>
+            <input type="text" name="name">
+        </form>
+        <button form="update_team">Save</button>
+        
+        <hr>
+        {% for series in records['series'].keys() %}
+        <h2>Statistics in {{ records['series'][series][0]['Name'] }}</h2>
+        <table>
+            <!-- header -->
+            <tr>
+            {% for header in records['header'] %}
+            <td><b>{{header}}</b></td>
+            {% endfor %}
+            </tr>
+            <!-- individual records -->
+             {% for record in records['ind'][series] %}
+             <tr>
+                {% for key in record.keys()[1:] %}
+                <td>
+                    {% if key == 'RACE' %}
+                    <a href="./{{id}}/{{series}}/{{record['Year']}}/{{record['Number']}}">{{record[key]}}</a>
+                    {% else %}
+                    {{record[key]}}
+                    {% endif %}
+                </td>
+                {% endfor %}
+             </tr>
+             {% endfor %}
+            <!-- aggregate record -->
+            {% for record in records['agg'][series] %}
+            <tr>
+                <!-- if aggregate doesn't exist -> blank -->
+                 {% for header in records['header'] %}
+                    <td><b>
+                        {% if header in record.keys() %}
+                            {% if header == 'RACE' %}
+                                <a href="./{{id}}/{{series}}">{{record[header]}}</a>
+                            {% else %}
+                                {{ record[header] }}
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                    </b></td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% endfor %}
+
+        <br>
+        Note: Upon deletion, all entries the team is linked to will remain but without a link to any team
+        <button onclick="DeleteTeam()">Delete Team</button>
+    </body>
+</html>
+<script>
+function DeleteTeam() {
+    fetch(window.location.href, {method: 'DELETE'})
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            }).catch(error => console.log(error))
+    }
+
+</script>

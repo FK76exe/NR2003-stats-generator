@@ -1,40 +1,33 @@
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template, redirect, url_for, request, abort
 from db import DB_PATH
 import sqlite3
 
 driver_page = Blueprint("driver_page", __name__, url_prefix='/driver')
-# use this as a base, then add where clauses onto it in practice
-GET_DRIVER_RESULTS_QUERY = "race_name as Race, race_id as Race_ID, track_name as Track, finish_position as Finish, start_position as Start, \
-car_number as Number, interval as Interval, laps as Laps, led as Led, points as Points, finish_status as Status \
-FROM race_records \
-LEFT JOIN drivers ON driver_id = drivers.id \
-LEFT JOIN ( \
-    SELECT season_num, series_id,races.id, IFNULL(name, track_name) as race_name, track_name \
-    FROM races \
-    LEFT JOIN tracks ON races.track_id = tracks.id \
-    LEFT JOIN (SELECT season_num, series_id, id AS season_id FROM seasons) a ON races.season_id = a.season_id \
-) b ON race_records.race_id = b.id"
 
-@driver_page.route("/")
+@driver_page.route("/", methods=['GET', 'POST'])
 def get_drivers():
+    if request.method == 'POST':
+        return add_driver(request.form['name'])
     drivers = []
     query = "SELECT game_id FROM drivers ORDER BY game_id ASC"
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
         drivers = cursor.fetchall()
-    return render_template("driver_list.html", drivers=[driver[0] for driver in drivers])
-
-@driver_page.route("/<game_id>/")
+    return render_template("./driver/driver_list.html", drivers=[driver[0] for driver in drivers])
+   
+@driver_page.route("/<game_id>/", methods=['GET', 'POST'])
 def driver_overview(game_id):
+    if request.method == 'POST':
+        return rename_driver(game_id, request.form['new_driver_name'])
     data = []
 
     # remember: series have unique names
     query = f"SELECT series.id as series_id, series as SERIES, year AS YEAR, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS, RANK \
-FROM (SELECT *,RANK() OVER(PARTITION BY series, year ORDER BY points DESC) as RANK from points_view) a \
+FROM (SELECT *,RANK() OVER(PARTITION BY series, year ORDER BY points DESC) as RANK from driver_points_view) a \
 LEFT JOIN series ON series.name = a.series \
 where game_id = '{game_id}' \
-ORDER BY YEAR ASC"
+ORDER BY series_id, YEAR ASC"
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
@@ -45,8 +38,8 @@ ORDER BY YEAR ASC"
 
         # get aggregate data as well (use Nones for things that can't be aggregated)
         # || = concat
-        query = f"SELECT series.id as series_id, series AS SERIES, COUNT(*) || ' years', SUM(RACES), SUM(WIN), SUM([TOP 5]), SUM([TOP 10]), SUM(POLE), SUM(LAPS), SUM(LED), '---', '---', SUM(DNF), SUM(LLF), SUM(POINTS), '---' FROM points_view \
-        LEFT JOIN series ON series.name = points_view.series \
+        query = f"SELECT series.id as series_id, series AS SERIES, COUNT(*) || ' years', SUM(RACES), SUM(WIN), SUM([TOP 5]), SUM([TOP 10]), SUM(POLE), SUM(LAPS), SUM(LED), '---', '---', SUM(DNF), SUM(LLF), SUM(POINTS), '---' FROM driver_points_view \
+        LEFT JOIN series ON series.name = driver_points_view.series \
         WHERE game_id = '{game_id}' GROUP BY series"
         cursor.execute(query)
         data += cursor.fetchall()
@@ -59,16 +52,41 @@ ORDER BY YEAR ASC"
         else:
             records_by_series[tuple(season_record[:2])].append(season_record[2:])
 
-    return render_template('driver.html', header=header, series_records=records_by_series, driver=game_id)
+    return render_template("./driver/driver.html", header=header, series_records=records_by_series, driver=game_id)
+
+def add_driver(name: str):
+    name = name.replace("'", "`")
+    try:
+        with sqlite3.connect(DB_PATH) as con:
+            cursor = con.cursor()
+            query = f"INSERT INTO drivers (game_id) VALUES ('{name}')"
+            cursor.execute(query)
+            con.commit()
+        return redirect(url_for('driver_page.driver_overview', game_id=name), 302)
+    except sqlite3.IntegrityError:
+        return abort(400, "Please use a unique name for your new driver.")
+
+def rename_driver(game_id: str, new_name: str):
+    new_name = new_name.replace("'", "`")
+    query = f"UPDATE drivers SET game_id='{new_name}' WHERE game_id='{game_id}'"
+    with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+        try:
+            cursor.execute(query)
+        except:
+            return abort(400, "Please enter a unique name for the driver.")
+    return redirect(url_for('driver_page.driver_overview', game_id=new_name), 302)
 
 @driver_page.route("/<game_id>/<series_id>/<filter>/")
 def driver_results_by_series(game_id: str, series_id: int, filter:str):
     """list race results of a driver for a given series across all seasons, ordered by season and then race ID"""
     data = []
-    filter_dict = {'all': '', 'win': 'AND finish_position = 1', 'top5': 'AND finish_position <= 5', 'top10': 'AND finish_position <=10', 'pole': 'AND start_position = 1'}
+    filter_dict = {'all': '', 'win': 'AND Finish = 1', 'top5': 'AND Finish <= 5', 'top10': 'AND Finish <=10', 'pole': 'AND Start = 1'}
     
-    query = f"SELECT season_num as Year, {GET_DRIVER_RESULTS_QUERY} WHERE game_id = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} ORDER BY season_num ASC, race_id ASC"
-    
+    query = f"""SELECT Year, Race, Race_ID, Track_ID, Track, Finish, Start, Number, Team_ID, Team_Name as Team, Interval, Laps, Led, Points, Status 
+    FROM race_records_view WHERE Driver_Name = '{game_id}' AND series_id = {series_id} {filter_dict[filter]} 
+    ORDER BY Year ASC, Race_ID ASC"""
+
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         cursor.execute(query)
@@ -84,7 +102,7 @@ def driver_results_by_series(game_id: str, series_id: int, filter:str):
             record_dict.update({header: record[i]})
         records.append(record_dict)
 
-    return render_template('driver_season.html', records=records, series=series_name, driver=game_id, headers=headers)
+    return render_template('./driver/driver_season.html', records=records, series=series_name, driver=game_id, headers=headers)
 
 @driver_page.route("/<game_id>/<series_id>/<season_num>")
 def driver_results_by_season(game_id: str, series_id: int, season_num: int):
@@ -92,7 +110,10 @@ def driver_results_by_season(game_id: str, series_id: int, season_num: int):
     data = []
     series_name = ""
 
-    query = f"SELECT {GET_DRIVER_RESULTS_QUERY} WHERE game_id = '{game_id}' AND series_id = {series_id} AND season_num = {season_num}"
+    query = f"""SELECT Race, Race_ID, Track_ID, Track,
+      Finish, Start, Number, Team_ID, Team_Name as Team, Interval, Laps, Led, Points, Status FROM 
+      race_records_view WHERE Driver_Name = '{game_id}' AND 
+      series_id = {series_id} AND Year = {season_num}"""
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
@@ -111,7 +132,7 @@ def driver_results_by_season(game_id: str, series_id: int, season_num: int):
         records.append(record_dict)
 
 
-    return render_template('driver_season.html', records=records, series=series_name, season=season_num, driver=game_id, headers=headers)
+    return render_template('./driver/driver_season.html', records=records, series=series_name, season=season_num, driver=game_id, headers=headers)
 
 def get_series_name_from_id(series_id: int, cursor: sqlite3.Cursor):
     return cursor.execute(f"SELECT name FROM series WHERE id = {series_id}").fetchone()[0]
@@ -130,3 +151,29 @@ def delete_driver(game_id: str):
             print(f"ERROR: {str(e)}")
     # this creates a redirect response object, which must be handled by caller
     return redirect(url_for('driver_page.get_drivers'), code=302)
+
+@driver_page.route("/<game_id>/<series_id>/tracks/")
+def get_driver_track_stats_by_series(game_id: str, series_id: int):
+    query = f"""
+        SELECT Track_ID, Track, Starts, Wins, [Top 5], [Top 10], Poles,
+        Laps, Miles, [Miles Led], [Av. S], [Av. F], DNF, LLF, Points
+        FROM track_aggregate_stats
+        WHERE Driver_Name='{game_id}' AND Series_ID={series_id}
+        ORDER BY Track ASC
+        """
+    with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = sqlite3.Row
+        cursor = con.cursor()
+        cursor.execute(query)
+        records = cursor.fetchall()
+        headers = [i[0] for i in cursor.description]
+
+        if len(records) == 0:
+            return abort(404, f"No records exist for {game_id} in series ID {series_id}")
+        return render_template("./driver/track_stats.html",
+                               driver=game_id,
+                               headers=headers,
+                               records=records, 
+                               series_id=series_id, 
+                               series_name=get_series_name_from_id(series_id, cursor)
+                               )

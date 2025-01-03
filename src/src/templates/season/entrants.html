@@ -1,0 +1,41 @@
+{% from "./season/season_nav.html" import season_nav %}
+<html>
+    <head>
+        <title>Entrants</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+        {{season_nav(series, season)}}
+
+        Assign a team to each entrant number.
+
+        <form id="entrant_assignment" method="post">
+            <table>
+                <tr>
+                    <td>#</td><td>Team</td>
+                </tr>
+                {% for entrant in entrants %}
+                <tr>
+                    <td>{{entrant['number']}}</td>
+                    <td>
+                        <!-- Name it by entrant id -->
+                        <select name="{{entrant['id']}}"> 
+                            {% for team in teams %}
+                                {% if team['id'] == entrant['team_id'] %}
+                                <option value="{{team['id']}}" selected>{{team['name']}}</option>
+                                {% else %}
+                                <option value="{{team['id']}}">{{team['name']}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </form>
+        <br>
+        <button form="entrant_assignment">
+            Save
+        </button>
+    </body>
+</html>

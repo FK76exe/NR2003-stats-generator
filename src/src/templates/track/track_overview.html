@@ -1,0 +1,94 @@
+{% from "macro.html" import initial_deletion, confirm_deletion, main_navigation with context %}
+
+<html>
+    <head>
+        <title>
+            {{track_info[0]}}
+        </title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+        {{main_navigation()}}
+        <h1>{{track_info[0]}}</h1>
+
+        <form method="post">
+            Enter Track Name:
+            <input name="track_name" type="text" required>
+            <br>
+            Track Length (miles):
+            <input name="track_length" type="number" required step="0.001" value="{{track_info[1]}}" min="0.001">
+            <br>
+            Is this a restrictor plate / drafting track?
+            <input name="uses_plate" type="checkbox" value="yes">
+            <br>
+            What type of track is it?
+            <select name="track_type" required>
+                {% if track_info[3] == 'STREET COURSE' %}
+                    <option value="1" selected>Street Course</option>
+                {% else %}
+                    <option value="1">Street Course</option>
+                {% endif %}
+                {% if track_info[3] == 'ROAD COURSE' %}
+                    <option value="2" selected>Road Course</option>
+                {% else %}
+                    <option value="2">Road Course</option>
+                {% endif %}
+                {% if track_info[3] == 'DIRT OVAL' %}
+                    <option value="3" selected>Dirt Oval</option>
+                {% else %}
+                    <option value="3">Dirt Oval</option>
+                {% endif %}s
+                {% if track_info[3] == 'PAVED OVAL' %}
+                    <option value="4" selected>Paved Oval</option>
+                {% else %}
+                    <option value="4">Paved Oval</option>
+                {% endif %}
+            </select>
+            <br><br>
+            <input type="submit" value="Save">
+        </form>
+        <hr>
+        <!-- Series per Table -->
+        {% for series in records %}
+            <h2>{{series[1]}}</h2>
+            <table>
+                <tr>
+                    {% for header in headers %}
+                        <td>
+                            <b>
+                                {{header}}
+                            </b>
+                        </td>
+                    {% endfor %}
+                </tr>
+                {% for record in records[series] %}
+                    <tr>
+                        {% for field in record.keys() %}
+                            {% if field == 'Year' %}
+                            <td><a href="/series/{{series[0]}}/{{record['Year']}}">{{record[field]}}</a></td>
+                            {% elif field == 'Race' %}
+                            <td><a href="/race/{{record['Race_ID']}}">{{record[field]}}</a></td>
+                            {% elif field == 'Winner' or field == 'Pole Sitter' %}
+                            <td><a href="/driver/{{record[field]}}">{{record[field]}}</a></td>
+                            {% elif field != 'Race_ID' %}
+                            <td>{{record[field]}}</td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+            <a href="./{{series[0]}}/">See Aggregate Stats</a>
+            <br>
+        {% endfor %}
+
+        {% if records.keys() | length == 0 %}
+        {{ initial_deletion('WARNING: DELETION CANNOT BE UNDONE.', "Delete Track") }}
+        {% endif %}
+    </body>
+
+    {% if records.keys() | length == 0 %}
+        <script>
+            {{ confirm_deletion('ANOTHER WARNING: THIS ACTION CANNOT BE UNDONE.')}}
+        </script>
+    {% endif %}    
+</html>

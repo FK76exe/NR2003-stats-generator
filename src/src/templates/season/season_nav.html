@@ -1,0 +1,26 @@
+{% from "./macro.html" import main_navigation %}
+
+{% macro season_nav(series, season) %}
+    {{main_navigation()}}
+    <ul class="nav">
+        <li>
+            <a href="/series/{{series}}/{{season}}/">Schedule</a>   
+        </li>
+        <li>
+            <a href="/series/{{series}}/{{season}}/points/">Driver Points</a>
+        </li>
+        <li>
+            <a href="/series/{{series}}/{{season}}/entrant_points/">Entrant Points</a>
+        </li>
+        <li>
+            <a href="/series/{{series}}/{{season}}/change_points/">Change Points</a>
+        </li>
+        <li>
+            <a href="/series/{{series}}/{{season}}/adjust_points/">Manual Points Edit</a>
+        </li>
+        <li>
+            <a href="/series/{{series}}/{{season}}/entrants/">Entrants</a>
+        </li>
+
+    </ul>
+{% endmacro %}

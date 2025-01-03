@@ -1,0 +1,46 @@
+{% from "macro.html" import main_navigation with context %}
+<html>
+    <head>
+        <title>{{season ~ " " ~ series}}</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+
+        {{ main_navigation() }}
+        
+        <h1>
+            {{ driver ~ "'s Results for Series " ~ series ~ " Season " ~ season}}
+        </h1>
+
+        <a href="/driver/{{driver}}">See overall statistics for {{driver}}</a>
+
+        <table>
+            <tr>
+                {% for header in headers %}
+                    {% if header not in ['Race_ID', 'Track_ID', 'Team_ID'] %}
+                        <td><b>{{header}}</b></td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% for record in records %}
+            <tr>
+                {% for field in record.keys() %}
+                    {% if (field == 'Start' or field == 'Finish') and record[field] == 1 %}
+                        <td style="color: red;">{{record[field]}}</td>
+                    {% elif field == 'Race'%}
+                        <td><a href="/race/{{record['Race_ID']}}">{{record[field]}}</a></td>
+                    {% elif field == 'Team' %}
+                        <td><a href="/team/{{record['Team_ID']}}">{{record[field]}}</a></td>
+                    {% elif field == 'Track' %}
+                        <td><a href="/tracks/{{record['Track_ID']}}">{{record[field]}}</a></td>
+                    {% elif field not in ['Race_ID', 'Track_ID', 'Team_ID'] %}
+                        <td>{{record[field]}}</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+
+        <i>n = {{records | length}}</i>
+    </body>
+</html>

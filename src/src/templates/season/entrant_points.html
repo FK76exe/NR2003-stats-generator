@@ -1,0 +1,64 @@
+{% from "./season/season_nav.html" import season_nav %}
+<!DOCTYPE html>
+<head>
+    <title>Season Standings</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+</head>
+<body>
+    <!-- Navbar -->
+    {{season_nav(series, season)}}
+
+    <table>
+        <tr>
+            <td><b>RANK</b></td>
+            {% for header in headers %}
+                {% if header != 'Team_ID' %}
+                <td>
+                    <b>{{ header }}</b>
+                </td>
+                {% endif %}
+            {% endfor %}
+                <td>
+                    <b>BEHIND</b>
+                </td>
+                <td>
+                    <b>NEXT</b>
+                </td>
+        </tr>
+        {% for row in records %}
+        <tr>
+            <td>
+                {{loop.index}}
+            </td>
+            {% for key in row.keys() %}
+                {% if key != 'Team_ID' %}
+                    <td>
+                    {% if key == 'TEAM' and row[key] and row['Team_ID'] is not none %}
+                        <a href="/team/{{row['Team_ID']}}/{{series}}/{{season}}">{{row[key]}}</a>
+                    {% elif key == 'NUMBER' and row[key] and row['Team_ID'] is not none %}
+                        <a href="/team/{{row['Team_ID']}}/{{series}}/{{season}}/{{row['NUMBER']}}">{{row[key]}}</a>
+                    {% else %}
+                        {{row[key]}}
+                    {% endif %}
+                    </td>
+                {% endif %}
+            {% endfor %}
+            {% if loop.index == 1 %}
+                <td>
+                    LEADER
+                </td>
+                <td>
+                    LEADER
+                </td>
+            {% else %}
+                <td>
+                    {{ row['POINTS'] - records[0]['POINTS']}}
+                </td>
+                <td>
+                    {{ row['POINTS'] - records[loop.index0 - 1]['POINTS']}}
+                </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</body>

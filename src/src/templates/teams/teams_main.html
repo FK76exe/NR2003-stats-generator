@@ -1,0 +1,26 @@
+{% from "macro.html" import main_navigation %}
+<html>
+    <head>
+        <title>Teams</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+        {{main_navigation()}}
+        <h1>Teams</h1>
+        
+        <ul>
+            {% for team in teams %}
+            <li>
+                <a href="./{{team[0]}}">{{team[1]}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        
+        <form id="create_team" method="post">
+            <label>Add a new team:</label>
+            <input type="text" name="name">
+        </form>
+        <button form="create_team">Add</button>
+
+    </body>
+</html>

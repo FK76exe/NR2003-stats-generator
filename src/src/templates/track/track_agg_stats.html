@@ -1,0 +1,38 @@
+{% from "macro.html" import initial_deletion, confirm_deletion, main_navigation with context %}
+
+<html>
+    <head>
+        <title>
+            {{name}}
+        </title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+        <h1>Aggregate Statistics for {{name}}</h1>
+        <a href="../">Track Overview</a>
+
+        <a href="/series/{{series_id}}">Series Page</a>
+
+        <table>
+            <!-- Header -->
+            <tr>
+                {% for h in headers %}
+                    <td><b>{{h}}</b></td>
+                {% endfor %}
+            </tr>
+            <!-- Body -->
+            {% for record in data %}
+                <tr>
+                    {% for field in record %}
+                    <td>
+                        {% if loop.index == 1 %}
+                        <a href="/driver/{{field}}">{{field}}</a>
+                        {% else %}
+                        {{field}}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
