@@ -32,13 +32,15 @@
             </td>
             {% for key in row.keys() %}
                 {% if key != 'Team_ID' %}
-                    {% if key == 'TEAM' and row[key] %}
-                        <td><a href="/team/{{row['Team_ID']}}/{{series}}/{{season}}">{{row[key]}}</a></td>
-                    {% elif key == 'NUMBER' and row[key] %}
-                        <td><a href="/team/{{row['Team_ID']}}/{{series}}/{{season}}/{{row['NUMBER']}}">{{row[key]}}</a></td>
+                    <td>
+                    {% if key == 'TEAM' and row[key] and row['Team_ID'] is not none %}
+                        <a href="/team/{{row['Team_ID']}}/{{series}}/{{season}}">{{row[key]}}</a>
+                    {% elif key == 'NUMBER' and row[key] and row['Team_ID'] is not none %}
+                        <a href="/team/{{row['Team_ID']}}/{{series}}/{{season}}/{{row['NUMBER']}}">{{row[key]}}</a>
                     {% else %}
-                        <td>{{row[key]}}</td>
+                        {{row[key]}}
                     {% endif %}
+                    </td>
                 {% endif %}
             {% endfor %}
             {% if loop.index == 1 %}
