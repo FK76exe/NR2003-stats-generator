@@ -13,7 +13,8 @@ def view_teams():
             return render_template("./teams/teams_main.html", teams=teams)
         else:
             try:
-                cursor.execute(f"""INSERT INTO teams (name) VALUES ("{request.form['name']}")""")
+                team_name = request.form['name'].replace("'","`")
+                cursor.execute(f"""INSERT INTO teams (name) VALUES ("{team_name}")""")
             except sqlite3.OperationalError:
                 return abort(400, f"Please make sure the team name is unique and is not in use by any existing team.")
             return redirect(url_for('team_page.view_teams'))
@@ -32,7 +33,8 @@ def single_team(id):
                 return abort(404, "Team with this id does not exist.")
         elif request.method == 'POST':
             # update team name
-            cursor.execute(f"UPDATE teams SET name='{request.form['name']}' WHERE id = {id}")
+            team_name = request.form['name'].replace("'","`")
+            cursor.execute(f"UPDATE teams SET name='{team_name}' WHERE id = {id}")
             return redirect(url_for('team_page.single_team', id=id))
         else:
             # delete team

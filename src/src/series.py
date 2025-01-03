@@ -14,7 +14,8 @@ def main():
     return list_all_series()
 
 def add_series(form):
-    query = f"INSERT INTO series (name) VALUES ('{form['series_name']}')"
+    series_name = form['series_name'].replace("'","`")
+    query = f"INSERT INTO series (name) VALUES ('{series_name}')"
     try:
         with sqlite3.connect(DB_PATH) as con:
             cursor = con.cursor()
@@ -37,7 +38,7 @@ def series_main(series_id):
     if request.method == 'POST':
         # only one form submitted at once - use this to differentiate them
         if "new_series_name" in request.form.keys():
-            rename_series(series_id, request.form['new_series_name'])
+            rename_series(series_id, request.form['new_series_name'].replace("'","`"))
         else:
             add_season(series_id, request)
     return get_series_info(series_id)
@@ -252,9 +253,10 @@ def get_season_id(series_id, season_num):
 def add_weekend(series, season, request):
     """Add a weekend (HTML file) to a given season"""
 
-    race_name = request.form['name']
+    race_name = str(request.form['name']).replace("'","`")
     race_track = request.form['track']
     race_file = request.files['file']
+    race_file_name = str(race_file.filename).replace("'","`")
 
     weekend_dict = file_scraper.scrape_results(race_file.read().decode("windows-1252"))
     
@@ -280,7 +282,7 @@ def add_weekend(series, season, request):
         season_id = cursor.fetchone()[0]
         
         # get new race id
-        cursor.execute(f"INSERT INTO races (name, season_id, race_file, track_id) VALUES ('{race_name}', {int(season_id)}, '{race_file.filename}', {int(race_track)})")
+        cursor.execute(f"INSERT INTO races (name, season_id, race_file, track_id) VALUES ('{race_name}', {int(season_id)}, '{race_file_name}', {int(race_track)})")
         race_id = cursor.lastrowid
 
         # create drivers if they don't exist

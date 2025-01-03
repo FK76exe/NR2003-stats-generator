@@ -24,7 +24,8 @@ def get_tracks(message):
     return render_template("./track/tracks.html", track_headers=track_headers, track_data=track_data, message=message)
 
 def add_track(form):
-    query = f"INSERT INTO tracks (track_name, length_miles, uses_plate, type) VALUES('{form['track_name']}', {form['track_length']}, {1 if 'uses_plate' in form.keys() else 0}, {form['track_type']})"
+    track_name = form['track_name'].replace("'","`")
+    query = f"INSERT INTO tracks (track_name, length_miles, uses_plate, type) VALUES('{track_name}', {form['track_length']}, {1 if 'uses_plate' in form.keys() else 0}, {form['track_type']})"
 
     with sqlite3.connect(DB_PATH) as con:
         try:
@@ -118,7 +119,8 @@ def get_track_stats_by_series(id: int, series_id: int):
         return render_template("./track/track_agg_stats.html", data=data, headers=headers, id=id, name=track_name, series_id=series_id)
 
 def update_track_info(id: int, form: dict):
-    query = f"UPDATE tracks SET track_name='{form['track_name']}', length_miles={form['track_length']}, uses_plate={1 if 'uses_plate' in form.keys() else 0}, type={form['track_type']} WHERE id={id}"
+    track_name = form['track_name'].replace("'","`")
+    query = f"UPDATE tracks SET track_name='{track_name}', length_miles={form['track_length']}, uses_plate={1 if 'uses_plate' in form.keys() else 0}, type={form['track_type']} WHERE id={id}"
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()

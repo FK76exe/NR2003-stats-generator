@@ -55,6 +55,7 @@ ORDER BY series_id, YEAR ASC"
     return render_template("./driver/driver.html", header=header, series_records=records_by_series, driver=game_id)
 
 def add_driver(name: str):
+    name = name.replace("'", "`")
     try:
         with sqlite3.connect(DB_PATH) as con:
             cursor = con.cursor()
@@ -66,6 +67,7 @@ def add_driver(name: str):
         return abort(400, "Please use a unique name for your new driver.")
 
 def rename_driver(game_id: str, new_name: str):
+    new_name = new_name.replace("'", "`")
     query = f"UPDATE drivers SET game_id='{new_name}' WHERE game_id='{game_id}'"
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
