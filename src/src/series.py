@@ -272,7 +272,7 @@ def add_weekend(series, season, request):
         entrant_nums = entrant_nums | set((row[1], ) for row in weekend_dict['Happy Hour'])
     drivers = drivers | set((row[2], ) for row in weekend_dict['Qualifying']) | set((row[3], ) for row in weekend_dict['Race'])
     entrant_nums = entrant_nums | set((row[1], ) for row in weekend_dict['Qualifying']) | set((row[2], ) for row in weekend_dict['Race'])
-    entrant_nums = [int(num[0]) for num in entrant_nums]
+    entrant_nums = [get_number_as_int(num_str[0]) for num_str in entrant_nums]
 
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
@@ -317,7 +317,7 @@ def add_weekend(series, season, request):
                     for record in weekend_dict[session]]
                 cursor.executemany("INSERT INTO timed_sessions (race_id, type, position, number, driver_id, time) VALUES (?, ?, ?, ?, ?, ?)", timed_session_list)
             elif session == 'Race':
-                race_list = [[race_id] + record[:3] + [driver_id_dict[record[3]]] + [str(record[4])] + record[5:8] + [str(record[8]), entrant_dict[int(record[2])]] for record in weekend_dict[session]] 
+                race_list = [[race_id] + record[:2] + [get_number_as_int(record[2])] + [driver_id_dict[record[3]]] + [str(record[4])] + record[5:8] + [str(record[8]), entrant_dict[get_number_as_int(record[2])]] for record in weekend_dict[session]] 
                 cursor.executemany("INSERT INTO race_records (race_id, finish_position, start_position, car_number, driver_id, interval, laps, led, points, finish_status, entrant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", race_list) 
             else: # penalties
                 if len(weekend_dict[session]) > 0:
@@ -343,3 +343,10 @@ def get_entrant_points(series_id, season_num):
         data = cursor.execute(query).fetchall()
         headers = [i[0] for i in cursor.description]
         return render_template("./season/entrant_points.html", headers=headers, records=data, series=series_id, season=season_num)
+
+# should make test cases for this...
+def get_number_as_int(num_str: str) -> int:
+    """Cast car number as integer, convert 0x numbers to 200x."""
+    if len(num_str) > 1 and num_str[0] == '0':
+        return 2000 + int(num_str)
+    return int(num_str)
