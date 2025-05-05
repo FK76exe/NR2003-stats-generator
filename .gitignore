@@ -7,3 +7,4 @@ notes.*
 src/build/**
 src/dist/**
 release/**
+notes/**

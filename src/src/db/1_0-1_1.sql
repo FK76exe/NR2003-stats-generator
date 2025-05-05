@@ -227,7 +227,7 @@ CREATE TABLE IF NOT EXISTS entries (
 CREATE TABLE IF NOT EXISTS entrants (
     id        INTEGER PRIMARY KEY,
     season_id INTEGER REFERENCES seasons (id) ON DELETE CASCADE,
-    number    INTEGER,
+    number    VARCHAR, -- due to 0x numbers
     team_id   INTEGER REFERENCES teams (id) ON DELETE SET NULL,
     UNIQUE (
         season_id,
