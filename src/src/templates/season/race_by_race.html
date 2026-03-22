@@ -1,0 +1,86 @@
+{% from "./season/season_nav.html" import season_nav %}
+<html>
+    <head>
+        <title>Race-by-Race</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles/series.css')}}">
+    </head>
+    <body>
+        {{season_nav(series, season)}}
+        <table>
+            <thead>
+                <tr>
+                    <td>Pos</td>
+                    <td>Driver</td>
+                    {% for id in race_ids %}
+                    <td><a href="/race/{{id}}">{{loop.index}}</a>
+                    </td>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for driver_record in driver_records %}
+                <tr>
+                <td>{{loop.index}}</td>
+                <td>{{driver_record[0]}}</td>
+                    {% for race_record in driver_record[1] %}
+                        <td
+                        class=
+                        "record
+                        {% if race_record[-1] == 1 %}
+                           dnf 
+                        {% elif race_record[0] == 1%}
+                            win
+                         {% elif race_record[0] in range(2,6) %}
+                            silver
+                         {% elif race_record[0] in range(6,11) %}
+                            bronze
+                         {% elif race_record[0] in range(11,21) %}
+                            green
+                         {% elif race_record[0] != '' %}
+                            blue
+                         {% endif %}
+                         {% if race_record[1] == 1 %}
+                            pole
+                         {% endif %}
+                        "
+                        >
+                            {{race_record[0]}}
+                        </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </body>
+    <style>
+        td.win {
+            background-color: #FFFFBF;
+        }
+        td.silver {
+            background-color: #DFDFDF;
+        }
+        td.bronze {
+            background-color: #FFDF9F;
+        }
+        td.green {
+            background-color: #DFFFDF;
+        }
+        td.blue {
+            background-color: #CFCFFF;
+        }
+        td.dnf {
+            background-color: #EFCFFF;
+        }
+        td.pole {
+            font-weight: bold;
+        }
+        td.record {
+            text-align: center;
+            width: 35px;
+        }
+        thead {
+            font-weight: bold;
+        }
+    </style>
+</html>

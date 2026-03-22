@@ -358,7 +358,8 @@ def get_number_as_int(num_str: str) -> int:
 
 RACE_BY_RACE_QUERY = """
 SELECT 
-race_records_view.RACE_ID, DRIVER_ID, Driver_Name, Finish, IIF(Start=1,1,0) as is_pole, IIF(Led>0,1,0) as lap_led, IIF(Led=x.most_led,1,0) as most_led
+race_records_view.RACE_ID, DRIVER_ID, Driver_Name, Finish, IIF(Start=1,1,0) as is_pole, IIF(Led>0,1,0) as lap_led, IIF(Led=x.most_led,1,0) as most_led,
+IIF(Status<>'Running',1,0) as is_dnf
 FROM race_records_view
 LEFT JOIN (SELECT RACE_ID, MAX(Led) as most_led FROM race_records_view GROUP BY RACE_ID) x ON race_records_view.RACE_ID = x.RACE_ID
  WHERE season_id = ?
@@ -387,7 +388,7 @@ def get_race_by_race(series_id: int, season_num: int):
         # get points data
         points_data = cursor.execute(RACE_BY_RACE_POINTS_QUERY, [series_name['name'], season_num])
     # step 2: transform race-by-race data
-    # idea: list where key = driver and value = list of tuples (race_id, result, pole, led, most led)
+    # idea: list where key = driver and value = list of tuples (result, pole, led, most led, is_dnf)
     race_by_race_list = []
     for driver_tuple in points_data:
         race_list = []
@@ -397,8 +398,8 @@ def get_race_by_race(series_id: int, season_num: int):
             records = list(filter(lambda record: record['RACE_ID'] == race_id and record['DRIVER_NAME'] == driver_name, 
                             race_by_race_data))
             if not records:
-                race_list.append((race_id, '', 0, 0, 0))
+                race_list.append(('', 0, 0, 0, 0))
             else:
-                race_list.append((race_id, records[0]['Finish'], records[0]['is_pole'], records[0]['lap_led'], records[0]['most_led']))
+                race_list.append((records[0]['Finish'], records[0]['is_pole'], records[0]['lap_led'], records[0]['most_led'], records[0]['is_dnf']))
         race_by_race_list.append((driver_name, race_list))
-    return race_by_race_list
+    return render_template("./season/race_by_race.html", series=series_id, season=season_num, race_ids=[x[0] for x in race_ids], driver_records=race_by_race_list)
