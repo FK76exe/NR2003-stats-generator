@@ -42,6 +42,12 @@
                          {% if race_record[1] == 1 %}
                             pole
                          {% endif %}
+                         {% if race_record[-2] == 1 %}
+                            most-led
+                         {% endif %}
+                         {% if race_record[-3] == 1 %}
+                            led
+                         {% endif %}
                         "
                         >
                             {{race_record[0]}}
@@ -52,6 +58,11 @@
 
             </tbody>
         </table>
+        <ul>
+            <li><i>Italics:</i> Led one lap</li>
+            <li><span style="text-decoration: underline;">Underline:</span> Led most laps</li>
+            <li><b>Bold:</b> Won pole</li>
+        </ul>
     </body>
     <style>
         td.win {
@@ -75,12 +86,29 @@
         td.pole {
             font-weight: bold;
         }
+        td.led {
+            font-style: italic;
+        }
+        td.most-led {
+            text-decoration: underline;
+        }
         td.record {
             text-align: center;
             width: 35px;
         }
         thead {
             font-weight: bold;
+            text-align: center;
+        }
+        thead a {
+            text-decoration: none;
+        }
+        tbody {
+            white-space: nowrap;
+        }
+        table {
+            display: block;
+            overflow: scroll;
         }
     </style>
 </html>
