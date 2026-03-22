@@ -118,6 +118,9 @@ def get_schedule(series, season):
 
     return render_template('./season/season.html', schedule=schedule, season=season, series_name=series_name[0][0], series=series, tracks=get_tracks())
 
+POINTS_QUERY = """SELECT game_id AS DRIVER, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS FROM driver_points_view 
+                    WHERE series = ? AND year = ?"""
+
 @series_page.route("/<series>/<season>/points/")
 def show_series(series, season):
     data = []
@@ -125,9 +128,7 @@ def show_series(series, season):
     with sqlite3.connect(DB_PATH) as con:
         cursor = con.cursor()
         series_name = cursor.execute(f"SELECT name FROM series WHERE id = {series}").fetchall()[0][0]
-
-        query = f"SELECT game_id AS DRIVER, RACES, WIN, [TOP 5], [TOP 10], POLE, LAPS, LED, [AV. S], [AV. F], DNF, LLF, POINTS FROM driver_points_view WHERE series = '{series_name}' AND year = {escape(season)}"
-        cursor.execute(query)
+        cursor.execute(POINTS_QUERY, [series_name, escape(season)])
         header = ["RANK"] + [col[0] for col in cursor.description]
         data = cursor.fetchall()
     return render_template('./season/season_table.html',header=header, records=data, series=series, season=season)
@@ -351,3 +352,53 @@ def get_number_as_int(num_str: str) -> int:
     if len(num_str) > 1 and num_str[0] == '0':
         return 2000 + int(num_str)
     return int(num_str)
+
+# get race-by-race
+# TODO split and refactor bc I can't take this anymore
+
+RACE_BY_RACE_QUERY = """
+SELECT 
+race_records_view.RACE_ID, DRIVER_ID, Driver_Name, Finish, IIF(Start=1,1,0) as is_pole, IIF(Led>0,1,0) as lap_led, IIF(Led=x.most_led,1,0) as most_led
+FROM race_records_view
+LEFT JOIN (SELECT RACE_ID, MAX(Led) as most_led FROM race_records_view GROUP BY RACE_ID) x ON race_records_view.RACE_ID = x.RACE_ID
+ WHERE season_id = ?
+"""
+
+RACE_BY_RACE_POINTS_QUERY = """SELECT game_id AS DRIVER, POINTS FROM driver_points_view WHERE series = ? AND year = ?"""
+
+@series_page.route("/<series_id>/<season_num>/race_by_race/")
+def get_race_by_race(series_id: int, season_num: int):
+    season_id = get_season_id(series_id, season_num)
+    race_ids = []
+    race_by_race_data = []
+    points_data = []
+    series_name = ''
+    # step 1: get data
+    with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = sqlite3.Row # can access value by col name like a dict!
+        cursor = con.cursor()
+        # get races in season
+        race_query = f"SELECT id FROM races WHERE season_id={season_id}"
+        race_ids = cursor.execute(race_query).fetchall()
+        # get race_by_race
+        race_by_race_data = cursor.execute(RACE_BY_RACE_QUERY, [season_id]).fetchall()
+        # get series name
+        series_name = cursor.execute("SELECT name FROM series WHERE id = ?", [series_id]).fetchone()
+        # get points data
+        points_data = cursor.execute(RACE_BY_RACE_POINTS_QUERY, [series_name['name'], season_num])
+    # step 2: transform race-by-race data
+    # idea: list where key = driver and value = list of tuples (race_id, result, pole, led, most led)
+    race_by_race_list = []
+    for driver_tuple in points_data:
+        race_list = []
+        for race_record in race_ids:
+            race_id = race_record[0]
+            driver_name = driver_tuple[0]
+            records = list(filter(lambda record: record['RACE_ID'] == race_id and record['DRIVER_NAME'] == driver_name, 
+                            race_by_race_data))
+            if not records:
+                race_list.append((race_id, '', 0, 0, 0))
+            else:
+                race_list.append((race_id, records[0]['Finish'], records[0]['is_pole'], records[0]['lap_led'], records[0]['most_led']))
+        race_by_race_list.append((driver_name, race_list))
+    return race_by_race_list
