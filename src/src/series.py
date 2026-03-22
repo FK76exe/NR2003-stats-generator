@@ -322,6 +322,7 @@ def add_weekend(series, season, request):
             else: # penalties
                 if len(weekend_dict[session]) > 0:
                     penalty_list = [[race_id] + record for record in weekend_dict[session]]
+                    # bug
                     cursor.execute("INSERT INTO penalties (race_id, lap, number, infraction, penalty) VALUES (?, ?, ?, ?, ?)", penalty_list)
         con.commit()
 
